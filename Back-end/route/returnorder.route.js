@@ -6,7 +6,10 @@ const controller = require("../controller/index");
 router.get("/bills", controller.returnOrderController.getBillsForReturn);
 
 // Lấy chi tiết hóa đơn để trả hàng
-router.get("/bills/:bill_id", controller.returnOrderController.getBillDetailsForReturn);
+router.get(
+  "/bills/:bill_id",
+  controller.returnOrderController.getBillDetailsForReturn
+);
 
 // Tạo yêu cầu trả hàng
 router.post("/", controller.returnOrderController.createReturnOrder);
@@ -15,6 +18,9 @@ router.post("/", controller.returnOrderController.createReturnOrder);
 router.get("/", controller.returnOrderController.getReturnOrders);
 
 // Lấy chi tiết return order
-router.get("/:return_order_id", controller.returnOrderController.getReturnOrderDetails);
+router.get(
+  "/:return_order_id",
+  controller.returnOrderController.getReturnOrderDetails
+);
 
 module.exports = router;

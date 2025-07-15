@@ -7,23 +7,25 @@ class ReturnOrderService {
       const queryParams = new URLSearchParams();
 
       if (params.shift_id) {
-        queryParams.append('shift_id', params.shift_id);
+        queryParams.append("shift_id", params.shift_id);
       }
 
       if (params.date_filter) {
-        queryParams.append('date_filter', params.date_filter);
+        queryParams.append("date_filter", params.date_filter);
       }
 
       if (params.time_slot) {
-        queryParams.append('time_slot', params.time_slot);
+        queryParams.append("time_slot", params.time_slot);
       }
 
-      const url = `${API_BASE_URL}/return/bills${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${API_BASE_URL}/return/bills${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
 
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -34,7 +36,7 @@ class ReturnOrderService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching bills for return:', error);
+      console.error("Error fetching bills for return:", error);
       throw error;
     }
   }
@@ -43,9 +45,9 @@ class ReturnOrderService {
   static async getBillDetailsForReturn(billId) {
     try {
       const response = await fetch(`${API_BASE_URL}/return/bills/${billId}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -56,7 +58,7 @@ class ReturnOrderService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching bill details for return:', error);
+      console.error("Error fetching bill details for return:", error);
       throw error;
     }
   }
@@ -65,9 +67,9 @@ class ReturnOrderService {
   static async createReturnOrder(returnData) {
     try {
       const response = await fetch(`${API_BASE_URL}/return/`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(returnData),
       });
@@ -79,7 +81,7 @@ class ReturnOrderService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error creating return order:', error);
+      console.error("Error creating return order:", error);
       throw error;
     }
   }
@@ -90,23 +92,25 @@ class ReturnOrderService {
       const queryParams = new URLSearchParams();
 
       if (params.page) {
-        queryParams.append('page', params.page);
+        queryParams.append("page", params.page);
       }
 
       if (params.limit) {
-        queryParams.append('limit', params.limit);
+        queryParams.append("limit", params.limit);
       }
 
       if (params.date_filter) {
-        queryParams.append('date_filter', params.date_filter);
+        queryParams.append("date_filter", params.date_filter);
       }
 
-      const url = `${API_BASE_URL}/return/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `${API_BASE_URL}/return/${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
 
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -117,7 +121,7 @@ class ReturnOrderService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching return orders:', error);
+      console.error("Error fetching return orders:", error);
       throw error;
     }
   }
@@ -126,9 +130,9 @@ class ReturnOrderService {
   static async getReturnOrderDetails(returnOrderId) {
     try {
       const response = await fetch(`${API_BASE_URL}/return/${returnOrderId}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -139,14 +143,14 @@ class ReturnOrderService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching return order details:', error);
+      console.error("Error fetching return order details:", error);
       throw error;
     }
   }
 
   // Utility method to format date for API
   static formatDateForAPI(date) {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   // Utility method to check if order is in time slot
@@ -156,7 +160,7 @@ class ReturnOrderService {
     const date = new Date(orderDate);
     const hour = date.getHours();
 
-    const [startHour, endHour] = timeSlot.split('h-').map(h => parseInt(h));
+    const [startHour, endHour] = timeSlot.split("h-").map((h) => parseInt(h));
     return hour >= startHour && hour < endHour;
   }
 
