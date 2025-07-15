@@ -1,124 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Search, Bell } from "lucide-react";
+import ReturnOrderService from "../services/returnOrderService";
 
 export default function ReturnGoods() {
-  // Mock data for order history (more items for pagination) - Bán lẻ không có tên khách
-  const [allOrders] = useState([
-    {
-      id: "ORD001",
-      date: "2024-06-15 09:30:00",
-      totalAmount: 500000,
-      items: [
-        { name: "Áo phông nam", quantity: 2, price: 250000 },
-        { name: "Mũ lưỡi trai", quantity: 1, price: 100000 },
-      ],
-    },
-    {
-      id: "ORD002",
-      date: "2024-06-15 14:20:00",
-      totalAmount: 750000,
-      items: [
-        { name: "Quần jeans", quantity: 1, price: 400000 },
-        { name: "Áo sơ mi", quantity: 1, price: 350000 },
-      ],
-    },
-    {
-      id: "ORD003",
-      date: "2024-06-15 16:45:00",
-      totalAmount: 300000,
-      items: [{ name: "Giày sneaker", quantity: 1, price: 300000 }],
-    },
-    {
-      id: "ORD004",
-      date: "2024-06-15 11:15:00",
-      totalAmount: 450000,
-      items: [{ name: "Túi xách", quantity: 1, price: 450000 }],
-    },
-    {
-      id: "ORD005",
-      date: "2024-06-15 13:30:00",
-      totalAmount: 200000,
-      items: [{ name: "Kính mát", quantity: 1, price: 200000 }],
-    },
-    {
-      id: "ORD006",
-      date: "2024-06-15 17:22:00",
-      totalAmount: 600000,
-      items: [{ name: "Đồng hồ", quantity: 1, price: 600000 }],
-    },
-    {
-      id: "ORD007",
-      date: "2024-06-15 10:45:00",
-      totalAmount: 350000,
-      items: [{ name: "Ví da", quantity: 1, price: 350000 }],
-    },
-    {
-      id: "ORD008",
-      date: "2024-06-15 15:10:00",
-      totalAmount: 280000,
-      items: [{ name: "Thắt lưng", quantity: 1, price: 280000 }],
-    },
-    {
-      id: "ORD009",
-      date: "2024-06-15 18:30:00",
-      totalAmount: 450000,
-      items: [{ name: "Áo khoác", quantity: 1, price: 450000 }],
-    },
-    {
-      id: "ORD010",
-      date: "2024-06-15 20:15:00",
-      totalAmount: 320000,
-      items: [{ name: "Quần short", quantity: 2, price: 160000 }],
-    },
-    {
-      id: "ORD011",
-      date: "2024-06-15 08:30:00",
-      totalAmount: 380000,
-      items: [{ name: "Áo vest", quantity: 1, price: 380000 }],
-    },
-    {
-      id: "ORD012",
-      date: "2024-06-15 12:45:00",
-      totalAmount: 220000,
-      items: [{ name: "Sandal", quantity: 1, price: 220000 }],
-    },
-    {
-      id: "ORD013",
-      date: "2024-06-15 19:30:00",
-      totalAmount: 180000,
-      items: [{ name: "Mũ snapback", quantity: 1, price: 180000 }],
-    },
-    {
-      id: "ORD014",
-      date: "2024-06-15 14:50:00",
-      totalAmount: 420000,
-      items: [{ name: "Áo len", quantity: 1, price: 420000 }],
-    },
-    {
-      id: "ORD015",
-      date: "2024-06-15 21:10:00",
-      totalAmount: 160000,
-      items: [{ name: "Tất", quantity: 4, price: 40000 }],
-    },
-    {
-      id: "ORD016",
-      date: "2024-06-15 09:15:00",
-      totalAmount: 340000,
-      items: [{ name: "Áo polo", quantity: 2, price: 170000 }],
-    },
-    {
-      id: "ORD017",
-      date: "2024-06-15 16:25:00",
-      totalAmount: 280000,
-      items: [{ name: "Quần tây", quantity: 1, price: 280000 }],
-    },
-    {
-      id: "ORD018",
-      date: "2024-06-15 11:40:00",
-      totalAmount: 150000,
-      items: [{ name: "Khăn choàng", quantity: 1, price: 150000 }],
-    },
-  ]);
+  // State management
+  const [allOrders, setAllOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Sidebar navigation
   const [activeNav, setActiveNav] = useState("Trả hàng");
@@ -132,7 +20,7 @@ export default function ReturnGoods() {
 
   // Filter and pagination states
   const [searchOrderId, setSearchOrderId] = useState("");
-  const [filteredOrders, setFilteredOrders] = useState(allOrders);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const [selectedShift, setSelectedShift] = useState("Ca sáng");
@@ -145,6 +33,40 @@ export default function ReturnGoods() {
   const [productSearchQuery, setProductSearchQuery] = useState("");
   const [returnReason, setReturnReason] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+
+  // Load bills from API
+  const loadBills = async (filters = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = {
+        date_filter: "24h",
+        ...filters
+      };
+
+      const response = await ReturnOrderService.getBillsForReturn(params);
+
+      if (response.success) {
+        setAllOrders(response.data);
+        setFilteredOrders(response.data);
+      } else {
+        setError("Không thể tải danh sách hóa đơn");
+      }
+    } catch (error) {
+      console.error("Error loading bills:", error);
+      setError("Lỗi khi tải danh sách hóa đơn");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load bills on component mount
+  useEffect(() => {
+    loadBills();
+  }, []);
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -152,29 +74,15 @@ export default function ReturnGoods() {
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
-    // Check if order time is in selected shift
+  // Check if order time is in selected shift
   const isOrderInShift = (orderDate, shift) => {
-    const date = new Date(orderDate);
-    const hour = date.getHours();
-
-    if (shift === "Ca sáng") {
-      return hour >= 8 && hour < 15; // 8h-15h
-    } else if (shift === "Ca chiều") {
-      return hour >= 15 && hour < 22; // 15h-22h
-    }
-    return true; // Default show all
+    return ReturnOrderService.isOrderInShift(orderDate, shift);
   };
 
   // Check if order time is in selected time slot
   const isOrderInTimeSlot = (orderDate, timeSlot) => {
-    const date = new Date(orderDate);
-    const hour = date.getHours();
-
-    // Extract start hour from time slot (e.g., "8h-9h" -> 8)
-    const startHour = parseInt(timeSlot.split('h-')[0]);
-    const endHour = startHour + 1;
-
-    return hour >= startHour && hour < endHour;
+    if (timeSlot === "Tất cả") return true;
+    return ReturnOrderService.isOrderInTimeSlot(orderDate, timeSlot);
   };
 
   // Filter orders based on search, shift and time slot
@@ -201,16 +109,35 @@ export default function ReturnGoods() {
   };
 
   // Handle order selection for return
-  const handleSelectOrder = (order) => {
-    setSelectedOrder(order);
-    const items = order.items.map((item) => ({
-      ...item,
-      returnQuantity: 0,
-      selected: false,
-    }));
-    setReturnItems(items);
-    setFilteredReturnItems(items);
-    setProductSearchQuery("");
+  const handleSelectOrder = async (order) => {
+    try {
+      setLoadingOrderDetails(true);
+      setError(null);
+
+      const response = await ReturnOrderService.getBillDetailsForReturn(order._id);
+
+      if (response.success) {
+        const orderData = response.data;
+        setSelectedOrder(orderData);
+
+        const items = orderData.items.map((item) => ({
+          ...item,
+          returnQuantity: 0,
+          selected: false,
+        }));
+
+        setReturnItems(items);
+        setFilteredReturnItems(items);
+        setProductSearchQuery("");
+      } else {
+        setError("Không thể tải chi tiết hóa đơn");
+      }
+    } catch (error) {
+      console.error("Error loading order details:", error);
+      setError("Lỗi khi tải chi tiết hóa đơn");
+    } finally {
+      setLoadingOrderDetails(false);
+    }
   };
 
   // Handle product search within selected order
@@ -275,14 +202,49 @@ export default function ReturnGoods() {
   };
 
   // Handle confirmed return
-  const handleConfirmedReturn = () => {
-    alert("Đã gửi yêu cầu trả hàng thành công!");
-    setSelectedOrder(null);
-    setReturnItems([]);
-    setFilteredReturnItems([]);
-    setProductSearchQuery("");
-    setReturnReason("");
-    setShowConfirmDialog(false);
+  const handleConfirmedReturn = async () => {
+    try {
+      setSubmittingReturn(true);
+      setError(null);
+
+      const selectedItems = returnItems.filter(
+        (item) => item.selected && item.returnQuantity > 0
+      );
+
+      const returnData = {
+        bill_id: selectedOrder._id,
+        return_reason: returnReason,
+        items: selectedItems.map(item => ({
+          goods_id: item.goods_id,
+          goods_name: item.name,
+          quantity: item.returnQuantity,
+          unit_price: item.price
+        })),
+        created_by: localStorage.getItem("userId") || "unknown"
+      };
+
+      const response = await ReturnOrderService.createReturnOrder(returnData);
+
+      if (response.success) {
+        alert("Đã gửi yêu cầu trả hàng thành công!");
+        setSelectedOrder(null);
+        setReturnItems([]);
+        setFilteredReturnItems([]);
+        setProductSearchQuery("");
+        setReturnReason("");
+        setShowConfirmDialog(false);
+
+        // Reload bills list
+        loadBills();
+      } else {
+        alert("Lỗi khi tạo yêu cầu trả hàng: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error creating return order:", error);
+      alert("Lỗi khi tạo yêu cầu trả hàng");
+    } finally {
+      setSubmittingReturn(false);
+    }
   };
 
   // Handle cancel confirmation
@@ -405,21 +367,17 @@ export default function ReturnGoods() {
     return pages;
   };
 
-  useEffect(() => {
-    setFilteredOrders(allOrders);
-  }, []);
-
   // Auto filter when shift changes
   useEffect(() => {
     handleSearch();
     // Reset time slot to "Tất cả" when shift changes
     setSelectedTimeSlot("Tất cả");
-  }, [selectedShift]);
+  }, [selectedShift, allOrders]);
 
   // Auto filter when time slot changes
   useEffect(() => {
     handleSearch();
-  }, [selectedTimeSlot]);
+  }, [selectedTimeSlot, allOrders]);
 
   return (
     <div className="d-flex min-vh-100">
@@ -492,6 +450,13 @@ export default function ReturnGoods() {
           </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="alert alert-danger mx-4 mt-3" role="alert">
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            {error}
+          </div>
+        )}
 
         <div className="container-fluid p-4">
           <div className="row g-4">
@@ -552,8 +517,9 @@ export default function ReturnGoods() {
       fontSize: '0.8rem',
       padding: '0.2rem 0.5rem',
     }}
+    disabled={loading}
   >
-    Tìm kiếm
+    {loading ? "Đang tìm..." : "Tìm kiếm"}
   </button>
 </div>
 
@@ -631,7 +597,14 @@ export default function ReturnGoods() {
                    <div className="table-responsive">
                      <table className="table table-sm table-hover">
                        <tbody>
-                         {currentOrders.length > 0 ? (
+                         {loading ? (
+                           <tr>
+                             <td className="py-4 text-center text-muted">
+                               <div className="spinner-border spinner-border-sm me-2"></div>
+                               Đang tải danh sách hóa đơn...
+                             </td>
+                           </tr>
+                         ) : currentOrders.length > 0 ? (
                            currentOrders.map((order) => (
                              <tr key={order.id} className="border-bottom">
                                <td className="py-3">
@@ -652,8 +625,9 @@ export default function ReturnGoods() {
                                    <button
                                      className="btn btn-sm btn-outline-primary ms-2"
                                      onClick={() => handleSelectOrder(order)}
+                                     disabled={loadingOrderDetails}
                                    >
-                                     Chọn
+                                     {loadingOrderDetails ? "Đang tải..." : "Chọn"}
                                    </button>
                                  </div>
                                </td>
@@ -939,8 +913,9 @@ export default function ReturnGoods() {
                         <button
                           className="btn btn-success"
                           onClick={handleReturnSubmit}
+                          disabled={submittingReturn}
                         >
-                          Xác nhận trả hàng
+                          {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                         </button>
                       </div>
                     </div>
@@ -1035,6 +1010,7 @@ export default function ReturnGoods() {
                      type="button"
                      className="btn btn-secondary"
                      onClick={handleCancelConfirm}
+                     disabled={submittingReturn}
                    >
                      <i className="fas fa-times me-1"></i>
                      Hủy
@@ -1043,9 +1019,10 @@ export default function ReturnGoods() {
                      type="button"
                      className="btn btn-danger"
                      onClick={handleConfirmedReturn}
+                     disabled={submittingReturn}
                    >
                      <i className="fas fa-check me-1"></i>
-                     Xác nhận trả hàng
+                     {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                    </button>
                  </div>
                </div>

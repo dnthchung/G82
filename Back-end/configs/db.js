@@ -409,7 +409,7 @@ const connectDB = async () => {
         },
         {
           import_batch_id: importBatches[2]._id, // PN003
-          goods_id: goods[0]._id, 
+          goods_id: goods[0]._id,
           quantity_imported: 30,
           unit_import_price: 9000,
           total_amount: 9000 * 30,
