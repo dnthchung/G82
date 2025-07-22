@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Search, Bell } from "lucide-react";
 import ReturnOrderService from "../services/returnOrderService";
 import CashierLayout from "./cashier/CashierLayout";
@@ -17,6 +17,320 @@ const formatDateTime = (dateString) => {
   // Reassemble in the desired DD-MM-YYYY format and append the time
   return `${day}-${month}-${year} ${timePart}`;
 };
+
+// Format currency helper function - memoized
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("vi-VN").format(amount) + " đ";
+};
+
+// Memoized Order Item Component
+const OrderItem = React.memo(({ order, index, onSelectOrder, loadingOrderDetails }) => {
+  const handleSelect = useCallback(() => {
+    onSelectOrder(order);
+  }, [order, onSelectOrder]);
+
+  return (
+    <tr
+      className="border-bottom"
+      style={{
+        backgroundColor: index % 2 === 0 ? "white" : "#f8f9fa",
+        borderBottom: "1px solid #dee2e6",
+      }}
+    >
+      <td style={{ padding: "12px 16px" }}>
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
+            <div className="text-primary fw-bold small" style={{ fontSize: "0.875rem" }}>
+              {order.id}
+            </div>
+            <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+              {formatDateTime(order.date)}
+            </div>
+          </div>
+          <div className="text-end">
+            <div className="text-danger fw-bold small" style={{ fontSize: "0.875rem" }}>
+              {formatCurrency(order.totalAmount)}
+            </div>
+          </div>
+          <button
+            className="btn btn-sm ms-2"
+            style={{
+              backgroundColor: "#e3f2fd",
+              color: "#1976d2",
+              border: "1px solid #bbdefb",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              fontSize: "0.8rem",
+            }}
+            onClick={handleSelect}
+            disabled={loadingOrderDetails}
+          >
+            {loadingOrderDetails ? "Đang tải..." : "Chọn"}
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+// Memoized Return Item Component
+const ReturnItem = React.memo(({ item, index, onReturnItemChange }) => {
+  const handleSelectionChange = useCallback(
+    (e) => {
+      onReturnItemChange(index, "selected", e.target.checked);
+    },
+    [index, onReturnItemChange],
+  );
+
+  const handleQuantityChange = useCallback(
+    (e) => {
+      onReturnItemChange(index, "returnQuantity", parseInt(e.target.value) || 0);
+    },
+    [index, onReturnItemChange],
+  );
+
+  const subtotal = useMemo(() => {
+    return item.selected ? formatCurrency(item.price * item.returnQuantity) : "0 đ";
+  }, [item.selected, item.price, item.returnQuantity]);
+
+  return (
+    <tr
+      className="align-middle"
+      style={{
+        backgroundColor: index % 2 === 0 ? "white" : "#f8f9fa",
+        borderBottom: "1px solid #dee2e6",
+      }}
+    >
+      <td style={{ padding: "12px 16px" }}>
+        <div className="form-check">
+          <input className="form-check-input" type="checkbox" checked={item.selected} onChange={handleSelectionChange} />
+          <label className="form-check-label small" style={{ fontSize: "0.875rem", color: "#212529" }}>
+            {item.name}
+          </label>
+        </div>
+      </td>
+      <td
+        className="small text-center"
+        style={{
+          padding: "12px 16px",
+          fontSize: "0.875rem",
+        }}
+      >
+        {item.quantity}
+      </td>
+      <td className="text-center" style={{ padding: "12px 16px" }}>
+        <input
+          type="number"
+          className="form-control form-control-sm text-center"
+          style={{
+            width: "60px",
+            margin: "0 auto",
+            fontSize: "0.875rem",
+          }}
+          min="0"
+          max={item.quantity}
+          value={item.returnQuantity}
+          onChange={handleQuantityChange}
+          disabled={!item.selected}
+        />
+      </td>
+      <td
+        className="small text-center"
+        style={{
+          padding: "12px 16px",
+          fontSize: "0.875rem",
+        }}
+      >
+        {formatCurrency(item.price)}
+      </td>
+      <td
+        className="text-danger fw-bold small text-center"
+        style={{
+          padding: "12px 16px",
+          fontSize: "0.875rem",
+        }}
+      >
+        {subtotal}
+      </td>
+    </tr>
+  );
+});
+
+// Memoized Orders List Component
+const OrdersList = React.memo(({ loading, currentOrders, onSelectOrder, loadingOrderDetails }) => {
+  return (
+    <div className="table-responsive">
+      <table
+        className="table table-sm table-hover"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        }}
+      >
+        <thead style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #dee2e6" }}>
+          <tr className="align-middle text-center">
+            <th
+              className="text-start text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              THÔNG TIN ĐƠN HÀNG
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr>
+              <td className="py-4 text-center text-muted" style={{ padding: "24px 16px" }}>
+                <div className="spinner-border spinner-border-sm me-2"></div> Đang tải danh sách hóa đơn...
+              </td>
+            </tr>
+          ) : currentOrders.length > 0 ? (
+            currentOrders.map((order, index) => <OrderItem key={order.id} order={order} index={index} onSelectOrder={onSelectOrder} loadingOrderDetails={loadingOrderDetails} />)
+          ) : (
+            <tr>
+              <td className="py-4 text-center text-muted" style={{ padding: "24px 16px" }}>
+                <i className="fas fa-search me-2"></i> Không tìm thấy đơn hàng nào
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+
+// Memoized Pagination Component
+const PaginationControls = React.memo(({ filteredOrders, itemsPerPage, onItemsPerPageChange, currentPage, totalPages, indexOfFirstItem, indexOfLastItem, renderPagination }) => {
+  return (
+    <div className="mt-3 pt-3 border-top">
+      {/* Items per page selector */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted small">Hiển thị:</span>
+          <select className="form-select form-select-sm" style={{ width: "auto", minWidth: "70px" }} value={itemsPerPage} onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}>
+            <option value={3}>3</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={20}>20</option>
+          </select>
+          <span className="text-muted small">đơn/trang</span>
+        </div>
+        <div className="text-muted small">Tổng: {filteredOrders.length} đơn hàng</div>
+      </div>
+
+      {totalPages > 1 ? (
+        <>
+          <nav aria-label="Phân trang đơn hàng">
+            <ul className="pagination pagination-sm justify-content-center mb-2">{renderPagination}</ul>
+          </nav>
+          <div className="text-center text-muted small">
+            Trang {currentPage} / {totalPages} - Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}
+            trong tổng {filteredOrders.length} đơn hàng
+          </div>
+        </>
+      ) : (
+        <div className="text-center text-muted small">Hiển thị tất cả {filteredOrders.length} đơn hàng</div>
+      )}
+    </div>
+  );
+});
+
+// Memoized Return Items Table Component
+const ReturnItemsTable = React.memo(({ filteredReturnItems, onReturnItemChange, productSearchQuery }) => {
+  return (
+    <div className="table-responsive">
+      <table
+        className="table table-sm"
+        style={{
+          backgroundColor: "white",
+          borderRadius: "8px",
+          overflow: "hidden",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        }}
+      >
+        <thead style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #dee2e6" }}>
+          <tr className="align-middle text-center">
+            <th
+              className="text-start text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              SẢN PHẨM
+            </th>
+            <th
+              className="text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              SL ĐÃ MUA
+            </th>
+            <th
+              className="text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              SL TRẢ
+            </th>
+            <th
+              className="text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              ĐƠN GIÁ
+            </th>
+            <th
+              className="text-muted small text-uppercase"
+              style={{
+                padding: "12px 16px",
+                fontWeight: "600",
+                fontSize: "0.75rem",
+                color: "#6c757d",
+              }}
+            >
+              THÀNH TIỀN
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredReturnItems.length > 0 ? (
+            filteredReturnItems.map((item, index) => <ReturnItem key={`${item.name}-${item.price}`} item={item} index={index} onReturnItemChange={onReturnItemChange} />)
+          ) : (
+            <tr>
+              <td colSpan="5" className="text-center text-muted py-3" style={{ padding: "24px 16px" }}>
+                <i className="fas fa-search me-2"></i>
+                Không tìm thấy sản phẩm nào phù hợp với "{productSearchQuery}"
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+});
 
 export default function ReturnGoods() {
   // State management
@@ -53,7 +367,7 @@ export default function ReturnGoods() {
   const [submittingReturn, setSubmittingReturn] = useState(false);
 
   // Load bills from API
-  const loadBills = async (filters = {}) => {
+  const loadBills = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       setError(null);
@@ -77,32 +391,43 @@ export default function ReturnGoods() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Load bills on component mount
   useEffect(() => {
     loadBills();
+  }, [loadBills]);
+
+  // Memoized pagination calculations
+  const paginationData = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+
+    return {
+      indexOfLastItem,
+      indexOfFirstItem,
+      totalPages,
+      currentOrders,
+    };
+  }, [currentPage, itemsPerPage, filteredOrders]);
+
+  const { indexOfLastItem, indexOfFirstItem, totalPages, currentOrders } = paginationData;
+
+  // Check if order time is in selected shift - memoized
+  const isOrderInShift = useCallback((orderDate, shift) => {
+    return ReturnOrderService.isOrderInShift(orderDate, shift);
   }, []);
 
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-
-  // Check if order time is in selected shift
-  const isOrderInShift = (orderDate, shift) => {
-    return ReturnOrderService.isOrderInShift(orderDate, shift);
-  };
-
-  // Check if order time is in selected time slot
-  const isOrderInTimeSlot = (orderDate, timeSlot) => {
+  // Check if order time is in selected time slot - memoized
+  const isOrderInTimeSlot = useCallback((orderDate, timeSlot) => {
     if (timeSlot === "Tất cả") return true;
     return ReturnOrderService.isOrderInTimeSlot(orderDate, timeSlot);
-  };
+  }, []);
 
-  // Filter orders based on search, shift and time slot
-  const handleSearch = () => {
+  // Filter orders based on search, shift and time slot - memoized
+  const handleSearch = useCallback(() => {
     let filtered = allOrders;
 
     // Filter by shift first
@@ -120,10 +445,10 @@ export default function ReturnGoods() {
 
     setFilteredOrders(filtered);
     setCurrentPage(1);
-  };
+  }, [allOrders, isOrderInShift, selectedShift, isOrderInTimeSlot, selectedTimeSlot, searchOrderId]);
 
-  // Handle order selection for return
-  const handleSelectOrder = async (order) => {
+  // Handle order selection for return - memoized
+  const handleSelectOrder = useCallback(async (order) => {
     try {
       setLoadingOrderDetails(true);
       setError(null);
@@ -152,49 +477,55 @@ export default function ReturnGoods() {
     } finally {
       setLoadingOrderDetails(false);
     }
-  };
+  }, []);
 
-  // Handle product search within selected order
-  const handleProductSearch = (searchTerm) => {
-    setProductSearchQuery(searchTerm);
-    if (!searchTerm.trim()) {
-      setFilteredReturnItems(returnItems);
-    } else {
-      const filtered = returnItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-      setFilteredReturnItems(filtered);
-    }
-  };
+  // Handle product search within selected order - memoized
+  const handleProductSearch = useCallback(
+    (searchTerm) => {
+      setProductSearchQuery(searchTerm);
+      if (!searchTerm.trim()) {
+        setFilteredReturnItems(returnItems);
+      } else {
+        const filtered = returnItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        setFilteredReturnItems(filtered);
+      }
+    },
+    [returnItems],
+  );
 
-  // Handle return item selection
-  const handleReturnItemChange = (filteredIndex, field, value) => {
-    // Find the actual item in returnItems array
-    const filteredItem = filteredReturnItems[filteredIndex];
-    const actualIndex = returnItems.findIndex((item) => item.name === filteredItem.name && item.price === filteredItem.price);
+  // Handle return item selection - memoized
+  const handleReturnItemChange = useCallback(
+    (filteredIndex, field, value) => {
+      // Find the actual item in returnItems array
+      const filteredItem = filteredReturnItems[filteredIndex];
+      const actualIndex = returnItems.findIndex((item) => item.name === filteredItem.name && item.price === filteredItem.price);
 
-    if (actualIndex !== -1) {
-      const updated = [...returnItems];
-      updated[actualIndex][field] = value;
-      setReturnItems(updated);
+      if (actualIndex !== -1) {
+        const updated = [...returnItems];
+        updated[actualIndex][field] = value;
+        setReturnItems(updated);
 
-      // Update filtered items as well
-      const updatedFiltered = [...filteredReturnItems];
-      updatedFiltered[filteredIndex][field] = value;
-      setFilteredReturnItems(updatedFiltered);
-    }
-  };
+        // Update filtered items as well
+        const updatedFiltered = [...filteredReturnItems];
+        updatedFiltered[filteredIndex][field] = value;
+        setFilteredReturnItems(updatedFiltered);
+      }
+    },
+    [returnItems, filteredReturnItems],
+  );
 
-  // Calculate total return amount
-  const calculateReturnTotal = () => {
+  // Calculate total return amount - memoized
+  const calculateReturnTotal = useMemo(() => {
     return returnItems.reduce((total, item) => {
       if (item.selected) {
         return total + item.price * item.returnQuantity;
       }
       return total;
     }, 0);
-  };
+  }, [returnItems]);
 
-  // Handle return submission
-  const handleReturnSubmit = () => {
+  // Handle return submission - memoized
+  const handleReturnSubmit = useCallback(() => {
     const selectedItems = returnItems.filter((item) => item.selected && item.returnQuantity > 0);
     if (selectedItems.length === 0) {
       alert("Vui lòng chọn ít nhất một sản phẩm để trả hàng");
@@ -207,10 +538,10 @@ export default function ReturnGoods() {
 
     // Show confirmation dialog
     setShowConfirmDialog(true);
-  };
+  }, [returnItems, returnReason]);
 
-  // Handle confirmed return
-  const handleConfirmedReturn = async () => {
+  // Handle confirmed return - memoized
+  const handleConfirmedReturn = useCallback(async () => {
     try {
       setSubmittingReturn(true);
       setError(null);
@@ -251,33 +582,31 @@ export default function ReturnGoods() {
     } finally {
       setSubmittingReturn(false);
     }
-  };
+  }, [returnItems, selectedOrder, returnReason, loadBills]);
 
-  // Handle cancel confirmation
-  const handleCancelConfirm = () => {
+  // Handle cancel confirmation - memoized
+  const handleCancelConfirm = useCallback(() => {
     setShowConfirmDialog(false);
-  };
+  }, []);
 
-  // Handle page change
-  const handlePageChange = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
+  // Handle page change - memoized
+  const handlePageChange = useCallback(
+    (pageNumber) => {
+      if (pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+      }
+    },
+    [totalPages],
+  );
 
-  // Handle items per page change
-  const handleItemsPerPageChange = (newItemsPerPage) => {
+  // Handle items per page change - memoized
+  const handleItemsPerPageChange = useCallback((newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page
-  };
+  }, []);
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN").format(amount) + " đ";
-  };
-
-  // Generate pagination buttons
-  const renderPagination = () => {
+  // Generate pagination buttons - memoized
+  const renderPagination = useMemo(() => {
     const pages = [];
     const maxVisiblePages = 3;
 
@@ -352,19 +681,28 @@ export default function ReturnGoods() {
     );
 
     return pages;
-  };
+  }, [currentPage, totalPages, handlePageChange]);
 
-  // Auto filter when shift changes
+  // Memoized handlers for form actions
+  const handleCancelForm = useCallback(() => {
+    setSelectedOrder(null);
+    setReturnItems([]);
+    setFilteredReturnItems([]);
+    setProductSearchQuery("");
+    setReturnReason("");
+  }, []);
+
+  // Auto filter when shift changes - with dependency array
   useEffect(() => {
     handleSearch();
     // Reset time slot to "Tất cả" when shift changes
     setSelectedTimeSlot("Tất cả");
-  }, [selectedShift, allOrders]);
+  }, [selectedShift, allOrders, handleSearch]);
 
-  // Auto filter when time slot changes
+  // Auto filter when time slot changes - with dependency array
   useEffect(() => {
     handleSearch();
-  }, [selectedTimeSlot, allOrders]);
+  }, [selectedTimeSlot, allOrders, handleSearch]);
 
   return (
     <CashierLayout pageTitle="Trả hàng" breadcrumb="Quản lý trả hàng">
@@ -482,85 +820,20 @@ export default function ReturnGoods() {
               </div>
 
               {/* Orders Table */}
-              <div className="table-responsive">
-                <table className="table table-sm table-hover">
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td className="py-4 text-center text-muted">
-                          <div className="spinner-border spinner-border-sm me-2"></div> Đang tải danh sách hóa đơn...
-                        </td>
-                      </tr>
-                    ) : currentOrders.length > 0 ? (
-                      currentOrders.map((order) => (
-                        <tr key={order.id} className="border-bottom">
-                          <td className="py-3">
-                            <div className="d-flex justify-content-between align-items-center">
-                              <div>
-                                <div className="text-primary fw-bold small"> {order.id} </div>
-                                {/* Use the new formatting function here */}
-                                <div className="text-muted small"> {formatDateTime(order.date)} </div>
-                              </div>
-                              <div className="text-end">
-                                <div className="text-danger fw-bold small"> {formatCurrency(order.totalAmount)} </div>
-                              </div>
-                              <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => handleSelectOrder(order)} disabled={loadingOrderDetails}>
-                                {" "}
-                                {loadingOrderDetails ? "Đang tải..." : "Chọn"}{" "}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td className="py-4 text-center text-muted">
-                          <i className="fas fa-search me-2"></i> Không tìm thấy đơn hàng nào
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <OrdersList loading={loading} currentOrders={currentOrders} onSelectOrder={handleSelectOrder} loadingOrderDetails={loadingOrderDetails} />
 
               {/* Pagination */}
               {filteredOrders.length > 0 && (
-                <div className="mt-3 pt-3 border-top">
-                  {/* Items per page selector */}
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="text-muted small">Hiển thị:</span>
-                      <select
-                        className="form-select form-select-sm"
-                        style={{ width: "auto", minWidth: "70px" }}
-                        value={itemsPerPage}
-                        onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
-                      >
-                        <option value={3}>3</option>
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={20}>20</option>
-                      </select>
-                      <span className="text-muted small">đơn/trang</span>
-                    </div>
-                    <div className="text-muted small">Tổng: {filteredOrders.length} đơn hàng</div>
-                  </div>
-
-                  {totalPages > 1 ? (
-                    <>
-                      <nav aria-label="Phân trang đơn hàng">
-                        <ul className="pagination pagination-sm justify-content-center mb-2">{renderPagination()}</ul>
-                      </nav>
-                      <div className="text-center text-muted small">
-                        Trang {currentPage} / {totalPages} - Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}
-                        trong tổng {filteredOrders.length} đơn hàng
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center text-muted small">Hiển thị tất cả {filteredOrders.length} đơn hàng</div>
-                  )}
-                </div>
+                <PaginationControls
+                  filteredOrders={filteredOrders}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  indexOfFirstItem={indexOfFirstItem}
+                  indexOfLastItem={indexOfLastItem}
+                  renderPagination={renderPagination}
+                />
               )}
             </div>
           </div>
@@ -647,58 +920,7 @@ export default function ReturnGoods() {
                       </div>
                     </div>
 
-                    <div className="table-responsive">
-                      <table className="table table-sm">
-                        <thead className="table-light">
-                          <tr className="align-middle text-center">
-                            <th className="text-muted small">SẢN PHẨM</th>
-                            <th className="text-muted small">SL ĐÃ MUA</th>
-                            <th className="text-muted small">SL TRẢ</th>
-                            <th className="text-muted small">ĐƠN GIÁ</th>
-                            <th className="text-muted small">THÀNH TIỀN</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredReturnItems.length > 0 ? (
-                            filteredReturnItems.map((item, index) => (
-                              <tr key={index} className="align-middle">
-                                <td>
-                                  <div className="form-check">
-                                    <input className="form-check-input" type="checkbox" checked={item.selected} onChange={(e) => handleReturnItemChange(index, "selected", e.target.checked)} />
-                                    <label className="form-check-label small">{item.name}</label>
-                                  </div>
-                                </td>
-                                <td className="small text-center">{item.quantity}</td>
-                                <td className="text-center">
-                                  <input
-                                    type="number"
-                                    className="form-control form-control-sm text-center"
-                                    style={{
-                                      width: "60px",
-                                      margin: "0 auto",
-                                    }}
-                                    min="0"
-                                    max={item.quantity}
-                                    value={item.returnQuantity}
-                                    onChange={(e) => handleReturnItemChange(index, "returnQuantity", parseInt(e.target.value) || 0)}
-                                    disabled={!item.selected}
-                                  />
-                                </td>
-                                <td className="small text-center">{formatCurrency(item.price)}</td>
-                                <td className="text-danger fw-bold small text-center">{item.selected ? formatCurrency(item.price * item.returnQuantity) : "0 đ"}</td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan="5" className="text-center text-muted py-3">
-                                <i className="fas fa-search me-2"></i>
-                                Không tìm thấy sản phẩm nào phù hợp với "{productSearchQuery}"
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                    <ReturnItemsTable filteredReturnItems={filteredReturnItems} onReturnItemChange={handleReturnItemChange} productSearchQuery={productSearchQuery} />
                   </div>
 
                   {/* Return Reason */}
@@ -711,25 +933,37 @@ export default function ReturnGoods() {
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded">
                       <span className="fw-bold">Tổng tiền hoàn lại:</span>
-                      <span className="text-primary fs-5 fw-bold">{formatCurrency(calculateReturnTotal())}</span>
+                      <span className="text-primary fs-5 fw-bold">{formatCurrency(calculateReturnTotal)}</span>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="d-flex gap-2 justify-content-end">
                     <button
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setSelectedOrder(null);
-                        setReturnItems([]);
-                        setFilteredReturnItems([]);
-                        setProductSearchQuery("");
-                        setReturnReason("");
+                      className="btn btn-sm"
+                      style={{
+                        backgroundColor: "#ffebee",
+                        color: "#d32f2f",
+                        border: "1px solid #ffcdd2",
+                        borderRadius: "4px",
+                        padding: "8px 16px",
                       }}
+                      onClick={handleCancelForm}
                     >
                       Hủy
                     </button>
-                    <button className="btn btn-success" onClick={handleReturnSubmit} disabled={submittingReturn}>
+                    <button
+                      className="btn btn-sm"
+                      style={{
+                        backgroundColor: "#e8f5e8",
+                        color: "#2e7d32",
+                        border: "1px solid #c8e6c9",
+                        borderRadius: "4px",
+                        padding: "8px 16px",
+                      }}
+                      onClick={handleReturnSubmit}
+                      disabled={submittingReturn}
+                    >
                       {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                     </button>
                   </div>
@@ -777,7 +1011,7 @@ export default function ReturnGoods() {
                         <div className="col-6">
                           <strong>Tổng tiền hoàn lại:</strong>
                           <br />
-                          <span className="text-success fw-bold">{formatCurrency(calculateReturnTotal())}</span>
+                          <span className="text-success fw-bold">{formatCurrency(calculateReturnTotal)}</span>
                         </div>
                       </div>
 
@@ -809,11 +1043,35 @@ export default function ReturnGoods() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={handleCancelConfirm} disabled={submittingReturn}>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: "#f5f5f5",
+                      color: "#757575",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "4px",
+                      padding: "8px 16px",
+                    }}
+                    onClick={handleCancelConfirm}
+                    disabled={submittingReturn}
+                  >
                     <i className="fas fa-times me-1"></i>
                     Hủy
                   </button>
-                  <button type="button" className="btn btn-danger" onClick={handleConfirmedReturn} disabled={submittingReturn}>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{
+                      backgroundColor: "#ffebee",
+                      color: "#d32f2f",
+                      border: "1px solid #ffcdd2",
+                      borderRadius: "4px",
+                      padding: "8px 16px",
+                    }}
+                    onClick={handleConfirmedReturn}
+                    disabled={submittingReturn}
+                  >
                     <i className="fas fa-check me-1"></i>
                     {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                   </button>

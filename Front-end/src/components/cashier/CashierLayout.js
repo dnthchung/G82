@@ -63,13 +63,13 @@ const CashierLayout = ({ children, pageTitle = "Tổng quan", breadcrumb = "" })
         {/* Logo */}
         <div className="sidebar-header">
           <div className="logo-container">
-            <div class="d-flex align-items-center justify-content-center">
-              <div class="logo-icon me-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="d-flex align-items-center justify-content-center">
+              <div className="logo-icon me-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 4.5 8-4.5M12 12l8 4.5" />
                 </svg>
               </div>
-              <h1 class="sidebar-title mb-0">TH Hải Chi</h1>
+              <h1 className="sidebar-title mb-0">TH Hải Chi</h1>
             </div>
           </div>
         </div>
@@ -156,12 +156,12 @@ const CashierLayout = ({ children, pageTitle = "Tổng quan", breadcrumb = "" })
                 <p className="breadcrumb">{breadcrumb}</p>
               </div>
             </div> */}
-            <div class="d-flex align-items-center justify-content-between">
-              <button class="toggle-sidebar-btn me-3" onClick={toggleSidebar}>
+            <div className="d-flex align-items-center justify-content-between">
+              <button className="toggle-sidebar-btn me-3" onClick={toggleSidebar}>
                 {isCollapsed ? <FaChevronRight /> : <FaBars />}
               </button>
 
-              <div class="page-info text-center">
+              <div className="page-info text-center">
                 <h1 className="page-title mb-0">{currentPageTitle}</h1>
                 <p className="breadcrumb mb-0">{breadcrumb}</p>
               </div>
