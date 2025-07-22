@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from "react"
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Search, Plus, Edit2, Trash2, RotateCcw } from "lucide-react";
 import CashierLayout from "./cashier/CashierLayout";
+import ProductService from "../services/productService";
 
 // Helper function định dạng tiền tệ
 const formatCurrency = (amount) => {
@@ -9,43 +10,17 @@ const formatCurrency = (amount) => {
 };
 
 const ProductManagement = () => {
-  // Mock data cho sản phẩm - Thêm nhiều categories để test infinite scroll
-  const [products] = useState([
-    { id: "SP001", name: "Trứng gà (10 quả)", category: "Thực phẩm tươi sống", costPrice: 28000, sellingPrice: 35000, stock: 100, unit: "hộp" },
-    { id: "SP002", name: "Sữa tươi không đường (1L)", category: "Đồ uống", costPrice: 25000, sellingPrice: 32000, stock: 120, unit: "hộp" },
-    { id: "SP003", name: "Gạo ST25 (5kg)", category: "Gia vị & Nấu ăn", costPrice: 95000, sellingPrice: 120000, stock: 70, unit: "bao" },
-    { id: "SP004", name: "Mì tôm Hảo Hảo (thùng)", category: "Gia vị & Nấu ăn", costPrice: 70000, sellingPrice: 90000, stock: 50, unit: "thùng" },
-    { id: "SP005", name: "Bánh quy bơ Danisa (hộp)", category: "Bánh kẹo & Đồ ăn vặt", costPrice: 65000, sellingPrice: 85000, stock: 90, unit: "hộp" },
-    { id: "SP006", name: "Nước ngọt Coca-Cola (lon)", category: "Đồ uống", costPrice: 8000, sellingPrice: 12000, stock: 300, unit: "lon" },
-    { id: "SP007", name: "Dầu ăn Tường An (2L)", category: "Gia vị & Nấu ăn", costPrice: 60000, sellingPrice: 80000, stock: 60, unit: "chai" },
-    { id: "SP008", name: "Kem đánh răng P/S (tuýp lớn)", category: "Chăm sóc cá nhân", costPrice: 30000, sellingPrice: 45000, stock: 150, unit: "tuýp" },
-    { id: "SP009", name: "Nước rửa chén Sunlight (chai 800g)", category: "Vệ sinh nhà cửa", costPrice: 20000, sellingPrice: 30000, stock: 110, unit: "chai" },
-    { id: "SP010", name: "Bánh gạo One One", category: "Bánh kẹo & Đồ ăn vặt", costPrice: 18000, sellingPrice: 25000, stock: 180, unit: "gói" },
-    { id: "SP011", name: "Nước mắm Nam Ngư (chai 500ml)", category: "Gia vị & Nấu ăn", costPrice: 22000, sellingPrice: 28000, stock: 80, unit: "chai" },
-    { id: "SP012", name: "Bánh mì sandwich", category: "Thực phẩm tươi sống", costPrice: 8000, sellingPrice: 12000, stock: 45, unit: "ổ" },
-    { id: "SP013", name: "Kẹo Alpenliebe", category: "Bánh kẹo & Đồ ăn vặt", costPrice: 15000, sellingPrice: 20000, stock: 200, unit: "gói" },
-    { id: "SP014", name: "Dầu gội Head & Shoulders", category: "Chăm sóc cá nhân", costPrice: 85000, sellingPrice: 110000, stock: 75, unit: "chai" },
-    { id: "SP015", name: "Nước giặt Omo", category: "Vệ sinh nhà cửa", costPrice: 95000, sellingPrice: 125000, stock: 60, unit: "túi" },
-    // Thêm mock data để có nhiều categories cho infinite scroll
-    { id: "SP016", name: "Thức ăn cho chó", category: "Thú cưng", costPrice: 50000, sellingPrice: 65000, stock: 30, unit: "túi" },
-    { id: "SP017", name: "Cát vệ sinh cho mèo", category: "Thú cưng", costPrice: 80000, sellingPrice: 100000, stock: 25, unit: "túi" },
-    { id: "SP018", name: "Máy sấy tóc", category: "Điện tử & Gia dụng", costPrice: 300000, sellingPrice: 450000, stock: 15, unit: "cái" },
-    { id: "SP019", name: "Bàn ủi", category: "Điện tử & Gia dụng", costPrice: 200000, sellingPrice: 280000, stock: 20, unit: "cái" },
-    { id: "SP020", name: "Máy xay sinh tố", category: "Điện tử & Gia dụng", costPrice: 500000, sellingPrice: 650000, stock: 12, unit: "cái" },
-    { id: "SP021", name: "Sách giáo khoa", category: "Văn phòng phẩm", costPrice: 25000, sellingPrice: 35000, stock: 100, unit: "cuốn" },
-    { id: "SP022", name: "Bút bi", category: "Văn phòng phẩm", costPrice: 3000, sellingPrice: 5000, stock: 500, unit: "cây" },
-    { id: "SP023", name: "Vở học sinh", category: "Văn phòng phẩm", costPrice: 8000, sellingPrice: 12000, stock: 200, unit: "quyển" },
-    { id: "SP024", name: "Bánh mì Việt Nam", category: "Thực phẩm khô", costPrice: 15000, sellingPrice: 20000, stock: 80, unit: "gói" },
-    { id: "SP025", name: "Cháo tươi", category: "Thực phẩm khô", costPrice: 12000, sellingPrice: 18000, stock: 60, unit: "hộp" },
-    { id: "SP026", name: "Mì gói", category: "Thực phẩm khô", costPrice: 8000, sellingPrice: 12000, stock: 150, unit: "gói" },
-    { id: "SP027", name: "Đồ chơi LEGO", category: "Đồ chơi trẻ em", costPrice: 100000, sellingPrice: 150000, stock: 25, unit: "hộp" },
-    { id: "SP028", name: "Búp bê Barbie", category: "Đồ chơi trẻ em", costPrice: 80000, sellingPrice: 120000, stock: 30, unit: "cái" },
-    { id: "SP029", name: "Xe mô hình", category: "Đồ chơi trẻ em", costPrice: 50000, sellingPrice: 75000, stock: 40, unit: "cái" },
-    { id: "SP030", name: "Áo thun nam", category: "Quần áo", costPrice: 80000, sellingPrice: 120000, stock: 50, unit: "cái" },
-    { id: "SP031", name: "Quần jeans nữ", category: "Quần áo", costPrice: 150000, sellingPrice: 220000, stock: 35, unit: "cái" },
-    { id: "SP032", name: "Giày thể thao", category: "Giày dép", costPrice: 200000, sellingPrice: 300000, stock: 25, unit: "đôi" },
-    { id: "SP033", name: "Dép lao động", category: "Giày dép", costPrice: 50000, sellingPrice: 75000, stock: 60, unit: "đôi" },
-  ]);
+  // State cho dữ liệu từ API
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_pages: 1,
+    total_items: 0,
+    items_per_page: 5,
+  });
 
   // State cho filters, pagination và sorting
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,7 +28,6 @@ const ProductManagement = () => {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  // ADDED: State để quản lý việc sắp xếp
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
 
   // NEW: State cho category search và infinite scroll
@@ -62,11 +36,92 @@ const ProductManagement = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const categoriesContainerRef = useRef(null);
 
-  // Lấy danh sách categories duy nhất
+  // State cho modal tạo/sửa sản phẩm
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [modalForm, setModalForm] = useState({
+    goods_name: "",
+    barcode: "",
+    unit_of_measure: "",
+    description: "",
+    category_id: "",
+    selling_price: "",
+    average_import_price: "",
+    stock_quantity: "",
+    minimum_stock_quantity: "",
+  });
+
+  // Load dữ liệu từ API
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+      };
+
+      // Add filters
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+      if (selectedCategory && selectedCategory !== "Tất cả") params.category = selectedCategory;
+      if (priceRange.min) params.minPrice = priceRange.min;
+      if (priceRange.max) params.maxPrice = priceRange.max;
+
+      // Add sorting
+      if (sortConfig.key) {
+        params.sortBy = sortConfig.key;
+        params.sortOrder = sortConfig.direction === "ascending" ? "asc" : "desc";
+      }
+
+      const response = await ProductService.getAllProducts(params);
+
+      if (response.success) {
+        setProducts(response.data);
+        setPagination(response.pagination);
+      } else {
+        throw new Error(response.message || "Không thể tải danh sách sản phẩm");
+      }
+    } catch (error) {
+      console.error("Error loading products:", error);
+      setError(error.message || "Có lỗi xảy ra khi tải dữ liệu");
+      setProducts([]);
+      setPagination({
+        current_page: 1,
+        total_pages: 1,
+        total_items: 0,
+        items_per_page: itemsPerPage,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, itemsPerPage, searchTerm, selectedCategory, priceRange, sortConfig]);
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const response = await ProductService.getCategories();
+      if (response.success) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  }, []);
+
+  // Load data khi component mount và khi params thay đổi
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  // Tạo danh sách categories với "Tất cả"
   const allCategories = useMemo(() => {
-    const uniqueCategories = [...new Set(products.map((p) => p.category))];
-    return ["Tất cả", ...uniqueCategories.sort()];
-  }, [products]);
+    const categoryNames = categories.map((cat) => cat.name);
+    return ["Tất cả", ...categoryNames.sort()];
+  }, [categories]);
 
   // NEW: Filter categories based on search term
   const filteredCategories = useMemo(() => {
@@ -115,7 +170,55 @@ const ProductManagement = () => {
     [resetCategoryFilters],
   );
 
-  // NEW: Enhanced category selection with scroll to visible
+  // NEW: Scroll event handler for infinite scroll
+  const handleCategoriesScroll = useCallback(
+    (e) => {
+      const { scrollTop, scrollHeight, clientHeight } = e.target;
+      if (scrollHeight - scrollTop <= clientHeight + 50) {
+        loadMoreCategories();
+      }
+    },
+    [loadMoreCategories],
+  );
+
+  // Reset visible categories count when search term changes
+  useEffect(() => {
+    setVisibleCategoriesCount(8);
+  }, [categorySearchTerm]);
+
+  // Products sẽ được filter, sort và paginate từ API, không cần local processing
+
+  // Xử lý bộ lọc
+  const resetFilters = useCallback(() => {
+    setSearchTerm("");
+    setSelectedCategory("Tất cả");
+    setPriceRange({ min: "", max: "" });
+    setSortConfig({ key: null, direction: "ascending" });
+    setCurrentPage(1);
+    resetCategoryFilters();
+  }, [resetCategoryFilters]);
+
+  // Xử lý tìm kiếm
+  const handleSearch = useCallback(() => {
+    setCurrentPage(1);
+    // loadProducts sẽ được trigger bởi useEffect khi currentPage thay đổi
+  }, []);
+
+  // Hàm yêu cầu sắp xếp
+  const requestSort = useCallback(
+    (key) => {
+      let direction = "ascending";
+      // Nếu click lại vào cột đang được sắp xếp, đổi chiều
+      if (sortConfig.key === key && sortConfig.direction === "ascending") {
+        direction = "descending";
+      }
+      setSortConfig({ key, direction });
+      setCurrentPage(1); // Quay về trang đầu tiên khi sắp xếp
+    },
+    [sortConfig],
+  );
+
+  // Enhanced category selection
   const handleCategorySelect = useCallback((category) => {
     setSelectedCategory(category);
     setCurrentPage(1);
@@ -133,87 +236,121 @@ const ProductManagement = () => {
     }
   }, []);
 
-  // NEW: Scroll event handler for infinite scroll
-  const handleCategoriesScroll = useCallback(
-    (e) => {
-      const { scrollTop, scrollHeight, clientHeight } = e.target;
-      if (scrollHeight - scrollTop <= clientHeight + 50) {
-        loadMoreCategories();
+  // CRUD Functions
+  const openCreateModal = useCallback(() => {
+    setEditingProduct(null);
+    setModalForm({
+      goods_name: "",
+      barcode: "",
+      unit_of_measure: "",
+      description: "",
+      category_id: "",
+      selling_price: "",
+      average_import_price: "",
+      stock_quantity: "",
+      minimum_stock_quantity: "",
+    });
+    setShowModal(true);
+  }, []);
+
+  const openEditModal = useCallback((product) => {
+    setEditingProduct(product);
+    setModalForm({
+      goods_name: product.name,
+      barcode: product.barcode || "",
+      unit_of_measure: product.unit,
+      description: product.description || "",
+      category_id: product.category_id || "",
+      selling_price: product.sellingPrice.toString(),
+      average_import_price: product.costPrice.toString(),
+      stock_quantity: product.stock.toString(),
+      minimum_stock_quantity: product.minimum_stock_quantity?.toString() || "0",
+    });
+    setShowModal(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setShowModal(false);
+    setEditingProduct(null);
+    setModalForm({
+      goods_name: "",
+      barcode: "",
+      unit_of_measure: "",
+      description: "",
+      category_id: "",
+      selling_price: "",
+      average_import_price: "",
+      stock_quantity: "",
+      minimum_stock_quantity: "",
+    });
+  }, []);
+
+  const handleModalFormChange = useCallback((field, value) => {
+    setModalForm((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleCreateProduct = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await ProductService.createProduct(modalForm);
+      if (response.success) {
+        closeModal();
+        await loadProducts(); // Reload products
+        alert("Tạo sản phẩm thành công!");
+      } else {
+        throw new Error(response.message || "Không thể tạo sản phẩm");
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      alert(`Lỗi: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [modalForm, loadProducts, closeModal]);
+
+  const handleUpdateProduct = useCallback(async () => {
+    if (!editingProduct) return;
+
+    try {
+      setLoading(true);
+      const response = await ProductService.updateProduct(editingProduct.id, modalForm);
+      if (response.success) {
+        closeModal();
+        await loadProducts(); // Reload products
+        alert("Cập nhật sản phẩm thành công!");
+      } else {
+        throw new Error(response.message || "Không thể cập nhật sản phẩm");
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      alert(`Lỗi: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [editingProduct, modalForm, loadProducts, closeModal]);
+
+  const handleDeleteProduct = useCallback(
+    async (productId) => {
+      if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+
+      try {
+        setLoading(true);
+        const response = await ProductService.deleteProduct(productId);
+        if (response.success) {
+          await loadProducts(); // Reload products
+          alert("Xóa sản phẩm thành công!");
+        } else {
+          throw new Error(response.message || "Không thể xóa sản phẩm");
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        alert(`Lỗi: ${error.message}`);
+      } finally {
+        setLoading(false);
       }
     },
-    [loadMoreCategories],
+    [loadProducts],
   );
-
-  // Reset visible categories count when search term changes
-  useEffect(() => {
-    setVisibleCategoriesCount(8);
-  }, [categorySearchTerm]);
-
-  // CHANGED: Filter và Sort products
-  const filteredProducts = useMemo(() => {
-    // Tạo một bản sao để có thể sort mà không ảnh hưởng state gốc
-    let filtered = [...products];
-
-    // Lọc theo từ khóa
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.id.toLowerCase().includes(searchTerm.toLowerCase()));
-    }
-    // Lọc theo nhóm sản phẩm
-    if (selectedCategory !== "Tất cả") {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    }
-    // Lọc theo khoảng giá
-    if (priceRange.min !== "") {
-      filtered = filtered.filter((p) => p.sellingPrice >= Number(priceRange.min));
-    }
-    if (priceRange.max !== "") {
-      filtered = filtered.filter((p) => p.sellingPrice <= Number(priceRange.max));
-    }
-
-    // ADDED: Sắp xếp sản phẩm
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        const valA = a[sortConfig.key];
-        const valB = b[sortConfig.key];
-        if (valA < valB) {
-          return sortConfig.direction === "ascending" ? -1 : 1;
-        }
-        if (valA > valB) {
-          return sortConfig.direction === "ascending" ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [products, searchTerm, selectedCategory, priceRange, sortConfig]); // CHANGED: Thêm sortConfig vào dependencies
-
-  // Xử lý bộ lọc
-  const resetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("Tất cả");
-    setPriceRange({ min: "", max: "" });
-    setSortConfig({ key: null, direction: "ascending" }); // CHANGED: Reset cả sắp xếp
-    setCurrentPage(1);
-    // NEW: Reset category filters
-    resetCategoryFilters();
-  };
-
-  // Xử lý tìm kiếm
-  const handleSearch = () => {
-    setCurrentPage(1);
-  };
-
-  // ADDED: Hàm yêu cầu sắp xếp
-  const requestSort = (key) => {
-    let direction = "ascending";
-    // Nếu click lại vào cột đang được sắp xếp, đổi chiều
-    if (sortConfig.key === key && sortConfig.direction === "ascending") {
-      direction = "descending";
-    }
-    setSortConfig({ key, direction });
-    setCurrentPage(1); // Quay về trang đầu tiên khi sắp xếp
-  };
 
   // ADDED: Hàm để hiển thị icon sắp xếp
   const getSortIndicator = (key) => {
@@ -231,20 +368,23 @@ const ProductManagement = () => {
     );
   };
 
-  // Pagination (Không thay đổi)
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const handlePageChange = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
-  const handleItemsPerPageChange = (newItemsPerPage) => {
+  // Pagination - sử dụng data từ API
+  const totalPages = pagination.total_pages;
+  const currentProducts = products; // API đã trả về data đã được paginate
+
+  const handlePageChange = useCallback(
+    (pageNumber) => {
+      if (pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+      }
+    },
+    [totalPages],
+  );
+
+  const handleItemsPerPageChange = useCallback((newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
-  };
+  }, []);
   const renderPagination = () => {
     const pages = [];
     const maxVisiblePages = 3;
@@ -337,7 +477,14 @@ const ProductManagement = () => {
 
                 {/* Category Search Input */}
                 <div className="mb-3">
-                  <div className="d-grid" style={{ gridTemplateColumns: "1fr auto", gap: 0 }}>
+                  <div
+                    className="d-grid mb-3"
+                    style={{
+                      gridTemplateColumns: "1fr auto",
+                      gap: "0",
+                      maxWidth: "100%",
+                    }}
+                  >
                     <input
                       type="text"
                       className="form-control form-control-sm"
@@ -349,10 +496,17 @@ const ProductManagement = () => {
                         borderTopRightRadius: 0,
                         borderBottomRightRadius: 0,
                         fontSize: "0.875rem",
+                        borderTopLeftRadius: 0,
+                        borderBottomLeftRadius: 0,
+                        margin: 0,
+                        // Thêm các thuộc tính sau để đồng bộ kích thước
+                        height: "28px",
+                        fontSize: "0.8rem",
+                        padding: "0.2rem 0.5rem",
                       }}
                     />
                     <button
-                      className="btn btn-sm btn-outline-secondary"
+                      className="btn btn-sm btn-secondary"
                       onClick={resetCategoryFilters}
                       type="button"
                       style={{
@@ -366,8 +520,6 @@ const ProductManagement = () => {
                       <RotateCcw size={14} />
                     </button>
                   </div>
-                  {/* Display search results info */}
-                  {categorySearchTerm && <div className="text-muted small mt-1">Tìm thấy {filteredCategories.length} nhóm sản phẩm</div>}
                 </div>
 
                 {/* Categories List with Infinite Scroll */}
@@ -412,15 +564,6 @@ const ProductManagement = () => {
                           }}
                         >
                           <span className="small">{category}</span>
-                          <span
-                            className={`badge ${selectedCategory === category ? "bg-light text-primary" : "bg-secondary"}`}
-                            style={{
-                              fontSize: "0.7rem",
-                              padding: "0.25em 0.5em",
-                            }}
-                          >
-                            {category === "Tất cả" ? products.length : products.filter((p) => p.category === category).length}
-                          </span>
                         </button>
                       ))}
 
@@ -465,7 +608,7 @@ const ProductManagement = () => {
                           }}
                         >
                           <Plus size={16} className="me-1" />
-                          Xem thêm {Math.min(8, filteredCategories.length - visibleCategoriesCount)} nhóm
+                          Xem thêm
                         </button>
                       )}
                     </>
@@ -489,13 +632,6 @@ const ProductManagement = () => {
                     </div>
                   )}
                 </div>
-
-                {/* Categories Summary */}
-                <div className="mt-3 pt-2 border-top">
-                  <div className="small text-muted text-center">
-                    Hiển thị {visibleCategories.length}/{filteredCategories.length} nhóm sản phẩm
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -505,13 +641,13 @@ const ProductManagement = () => {
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="card-title mb-0">
-                    Danh sách sản phẩm <span className="badge bg-primary ms-2">{filteredProducts.length}</span>
+                    Danh sách sản phẩm <span className="badge bg-primary ms-2">{pagination.total_items}</span>
                   </h6>
                   <div className="d-flex gap-2">
                     <button className="btn btn-sm btn-danger" onClick={resetFilters}>
                       <RotateCcw size={16} className="me-1" /> Xóa bộ lọc
                     </button>
-                    <button className="btn btn-sm btn-primary">
+                    <button className="btn btn-sm btn-primary" onClick={openCreateModal}>
                       <Plus size={16} className="me-1" /> Thêm sản phẩm
                     </button>
                   </div>
@@ -564,255 +700,282 @@ const ProductManagement = () => {
                     </div>
                   </div>
                 </div>
+                {/* Loading State */}
+                {loading && (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Đang tải...</span>
+                    </div>
+                    <div className="mt-2">Đang tải dữ liệu...</div>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {error && !loading && (
+                  <div className="alert alert-danger" role="alert">
+                    <strong>Lỗi:</strong> {error}
+                    <button className="btn btn-sm btn-outline-danger ms-3" onClick={loadProducts}>
+                      Thử lại
+                    </button>
+                  </div>
+                )}
+
                 {/* Products Table */}
-                <div className="table-responsive">
-                  <table
-                    className="table table-sm table-hover"
-                    style={{
-                      backgroundColor: "white",
-                      borderRadius: "8px",
-                      overflow: "hidden",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    }}
-                  >
-                    <thead style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #dee2e6" }}>
-                      <tr className="align-middle text-center">
-                        {/* CHANGED: Thêm onClick, style và hiển thị icon sắp xếp */}
-                        <th
-                          className="text-start text-muted small text-uppercase user-select-none"
-                          style={{
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            borderBottom: "2px solid transparent",
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                          onClick={() => requestSort("name")}
-                          title="Nhấn để sắp xếp theo tên sản phẩm"
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#e9ecef";
-                            e.target.style.borderBottomColor = "#0d6efd";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "";
-                            e.target.style.borderBottomColor = "transparent";
-                          }}
-                        >
-                          TÊN SAN PHẨM{getSortIndicator("name")}
-                        </th>
-                        <th
-                          className="text-muted small text-uppercase user-select-none"
-                          style={{
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            borderBottom: "2px solid transparent",
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                          onClick={() => requestSort("category")}
-                          title="Nhấn để sắp xếp theo nhóm hàng"
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#e9ecef";
-                            e.target.style.borderBottomColor = "#0d6efd";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "";
-                            e.target.style.borderBottomColor = "transparent";
-                          }}
-                        >
-                          NHÓM HÀNG{getSortIndicator("category")}
-                        </th>
-                        <th
-                          className="text-muted small text-uppercase user-select-none"
-                          style={{
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            borderBottom: "2px solid transparent",
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                          onClick={() => requestSort("sellingPrice")}
-                          title="Nhấn để sắp xếp theo giá bán"
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#e9ecef";
-                            e.target.style.borderBottomColor = "#0d6efd";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "";
-                            e.target.style.borderBottomColor = "transparent";
-                          }}
-                        >
-                          GIÁ BÁN{getSortIndicator("sellingPrice")}
-                        </th>
-                        <th
-                          className="text-muted small text-uppercase user-select-none"
-                          style={{
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            borderBottom: "2px solid transparent",
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                          onClick={() => requestSort("costPrice")}
-                          title="Nhấn để sắp xếp theo giá vốn"
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#e9ecef";
-                            e.target.style.borderBottomColor = "#0d6efd";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "";
-                            e.target.style.borderBottomColor = "transparent";
-                          }}
-                        >
-                          GIÁ VỐN TB{getSortIndicator("costPrice")}
-                        </th>
-                        <th
-                          className="text-muted small text-uppercase user-select-none"
-                          style={{
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                            borderBottom: "2px solid transparent",
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                          onClick={() => requestSort("stock")}
-                          title="Nhấn để sắp xếp theo số lượng tồn kho"
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#e9ecef";
-                            e.target.style.borderBottomColor = "#0d6efd";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "";
-                            e.target.style.borderBottomColor = "transparent";
-                          }}
-                        >
-                          TỒN KHO{getSortIndicator("stock")}
-                        </th>
-                        <th
-                          className="text-muted small text-uppercase"
-                          style={{
-                            padding: "12px 16px",
-                            fontWeight: "600",
-                            fontSize: "0.75rem",
-                            color: "#6c757d",
-                          }}
-                        >
-                          HÀNH ĐỘNG
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentProducts.length > 0 ? (
-                        currentProducts.map((product, index) => (
-                          <tr
-                            key={product.id}
-                            className="align-middle"
+                {!loading && !error && (
+                  <div className="table-responsive">
+                    <table
+                      className="table table-sm table-hover"
+                      style={{
+                        backgroundColor: "white",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <thead style={{ backgroundColor: "#f8f9fa", borderBottom: "2px solid #dee2e6" }}>
+                        <tr className="align-middle text-center">
+                          {/* CHANGED: Thêm onClick, style và hiển thị icon sắp xếp */}
+                          <th
+                            className="text-start text-muted small text-uppercase user-select-none"
                             style={{
-                              backgroundColor: index % 2 === 0 ? "white" : "#f8f9fa",
-                              borderBottom: "1px solid #dee2e6",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              borderBottom: "2px solid transparent",
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                            onClick={() => requestSort("name")}
+                            title="Nhấn để sắp xếp theo tên sản phẩm"
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#e9ecef";
+                              e.target.style.borderBottomColor = "#0d6efd";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "";
+                              e.target.style.borderBottomColor = "transparent";
                             }}
                           >
-                            <td style={{ padding: "12px 16px" }}>
-                              <div className="fw-bold small" style={{ color: "#212529", fontSize: "0.875rem" }}>
-                                {product.name}
-                              </div>
-                              <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
-                                {product.id}
-                              </div>
-                            </td>
-                            <td
-                              className="text-center small"
+                            TÊN SAN PHẨM{getSortIndicator("name")}
+                          </th>
+                          <th
+                            className="text-muted small text-uppercase user-select-none"
+                            style={{
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              borderBottom: "2px solid transparent",
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                            onClick={() => requestSort("category")}
+                            title="Nhấn để sắp xếp theo nhóm hàng"
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#e9ecef";
+                              e.target.style.borderBottomColor = "#0d6efd";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "";
+                              e.target.style.borderBottomColor = "transparent";
+                            }}
+                          >
+                            NHÓM HÀNG{getSortIndicator("category")}
+                          </th>
+                          <th
+                            className="text-muted small text-uppercase user-select-none"
+                            style={{
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              borderBottom: "2px solid transparent",
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                            onClick={() => requestSort("sellingPrice")}
+                            title="Nhấn để sắp xếp theo giá bán"
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#e9ecef";
+                              e.target.style.borderBottomColor = "#0d6efd";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "";
+                              e.target.style.borderBottomColor = "transparent";
+                            }}
+                          >
+                            GIÁ BÁN{getSortIndicator("sellingPrice")}
+                          </th>
+                          <th
+                            className="text-muted small text-uppercase user-select-none"
+                            style={{
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              borderBottom: "2px solid transparent",
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                            onClick={() => requestSort("costPrice")}
+                            title="Nhấn để sắp xếp theo giá vốn"
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#e9ecef";
+                              e.target.style.borderBottomColor = "#0d6efd";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "";
+                              e.target.style.borderBottomColor = "transparent";
+                            }}
+                          >
+                            GIÁ VỐN TB{getSortIndicator("costPrice")}
+                          </th>
+                          <th
+                            className="text-muted small text-uppercase user-select-none"
+                            style={{
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              borderBottom: "2px solid transparent",
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                            onClick={() => requestSort("stock")}
+                            title="Nhấn để sắp xếp theo số lượng tồn kho"
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "#e9ecef";
+                              e.target.style.borderBottomColor = "#0d6efd";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "";
+                              e.target.style.borderBottomColor = "transparent";
+                            }}
+                          >
+                            TỒN KHO{getSortIndicator("stock")}
+                          </th>
+                          <th
+                            className="text-muted small text-uppercase"
+                            style={{
+                              padding: "12px 16px",
+                              fontWeight: "600",
+                              fontSize: "0.75rem",
+                              color: "#6c757d",
+                            }}
+                          >
+                            HÀNH ĐỘNG
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentProducts.length > 0 ? (
+                          currentProducts.map((product, index) => (
+                            <tr
+                              key={product.id}
+                              className="align-middle"
                               style={{
-                                padding: "12px 16px",
-                                fontSize: "0.875rem",
-                                color: "#6c757d",
+                                backgroundColor: index % 2 === 0 ? "white" : "#f8f9fa",
+                                borderBottom: "1px solid #dee2e6",
                               }}
                             >
-                              {product.category}
-                            </td>
-                            <td
-                              className="text-center text-danger fw-bold small"
-                              style={{
-                                padding: "12px 16px",
-                                fontSize: "0.875rem",
-                              }}
-                            >
-                              {formatCurrency(product.sellingPrice)}
-                            </td>
-                            <td
-                              className="text-center small"
-                              style={{
-                                padding: "12px 16px",
-                                fontSize: "0.875rem",
-                              }}
-                            >
-                              {formatCurrency(product.costPrice)}
-                            </td>
-                            <td
-                              className="text-center fw-bold small"
-                              style={{
-                                padding: "12px 16px",
-                                fontSize: "0.875rem",
-                              }}
-                            >
-                              {product.stock} <span className="text-muted">{product.unit}</span>
-                            </td>
-                            <td className="text-center" style={{ padding: "12px 16px" }}>
-                              <div className="d-flex justify-content-center gap-1">
-                                <button
-                                  className="btn btn-sm"
-                                  style={{
-                                    backgroundColor: "#e3f2fd",
-                                    color: "#1976d2",
-                                    border: "1px solid #bbdefb",
-                                    borderRadius: "4px",
-                                    padding: "4px 8px",
-                                  }}
-                                  title="Sửa"
-                                >
-                                  Sửa
-                                </button>
-                                <button
-                                  className="btn btn-sm"
-                                  style={{
-                                    backgroundColor: "#ffebee",
-                                    color: "#d32f2f",
-                                    border: "1px solid #ffcdd2",
-                                    borderRadius: "4px",
-                                    padding: "4px 8px",
-                                  }}
-                                  title="Xóa"
-                                >
-                                  Xóa
-                                </button>
-                              </div>
+                              <td style={{ padding: "12px 16px" }}>
+                                <div className="fw-bold small" style={{ color: "#212529", fontSize: "0.875rem" }}>
+                                  {product.name}
+                                </div>
+                                <div className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                                  {product.id}
+                                </div>
+                              </td>
+                              <td
+                                className="text-center small"
+                                style={{
+                                  padding: "12px 16px",
+                                  fontSize: "0.875rem",
+                                  color: "#6c757d",
+                                }}
+                              >
+                                {product.category}
+                              </td>
+                              <td
+                                className="text-center text-danger fw-bold small"
+                                style={{
+                                  padding: "12px 16px",
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {formatCurrency(product.sellingPrice)}
+                              </td>
+                              <td
+                                className="text-center small"
+                                style={{
+                                  padding: "12px 16px",
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {formatCurrency(product.costPrice)}
+                              </td>
+                              <td
+                                className="text-center fw-bold small"
+                                style={{
+                                  padding: "12px 16px",
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {product.stock} <span className="text-muted">{product.unit}</span>
+                              </td>
+                              <td className="text-center" style={{ padding: "12px 16px" }}>
+                                <div className="d-flex justify-content-center gap-1">
+                                  <button
+                                    className="btn btn-sm"
+                                    style={{
+                                      backgroundColor: "#e3f2fd",
+                                      color: "#1976d2",
+                                      border: "1px solid #bbdefb",
+                                      borderRadius: "4px",
+                                      padding: "4px 8px",
+                                    }}
+                                    title="Sửa"
+                                    onClick={() => openEditModal(product)}
+                                    disabled={loading}
+                                  >
+                                    Sửa
+                                  </button>
+                                  <button
+                                    className="btn btn-sm"
+                                    style={{
+                                      backgroundColor: "#ffebee",
+                                      color: "#d32f2f",
+                                      border: "1px solid #ffcdd2",
+                                      borderRadius: "4px",
+                                      padding: "4px 8px",
+                                    }}
+                                    title="Xóa"
+                                    onClick={() => handleDeleteProduct(product.id)}
+                                    disabled={loading}
+                                  >
+                                    Xóa
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="6" className="text-center text-muted py-4">
+                              <Search size={48} className="mb-3 opacity-50" />
+                              <p className="mb-0">Không tìm thấy sản phẩm nào</p>
+                              <p className="small">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="6" className="text-center text-muted py-4">
-                            <Search size={48} className="mb-3 opacity-50" />
-                            <p className="mb-0">Không tìm thấy sản phẩm nào</p>
-                            <p className="small">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Pagination (Không thay đổi) */}
-                {filteredProducts.length > 0 && (
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {!loading && !error && pagination.total_items > 0 && (
                   <div className="mt-3 pt-3 border-top">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center gap-2">
@@ -828,7 +991,7 @@ const ProductManagement = () => {
                         </select>
                         <span className="text-muted small">sản phẩm/trang</span>
                       </div>
-                      <div className="text-muted small">Tổng: {filteredProducts.length} sản phẩm</div>
+                      <div className="text-muted small">Tổng: {pagination.total_items} sản phẩm</div>
                     </div>
                     {totalPages > 1 ? (
                       <>
@@ -838,11 +1001,11 @@ const ProductManagement = () => {
                         </nav>
                         <div className="text-center text-muted small">
                           {" "}
-                          Trang {currentPage} / {totalPages} - Tổng: {filteredProducts.length} sản phẩm{" "}
+                          Trang {currentPage} / {totalPages} - Tổng: {pagination.total_items} sản phẩm{" "}
                         </div>
                       </>
                     ) : (
-                      <div className="text-center text-muted small">Hiển thị tất cả {filteredProducts.length} sản phẩm</div>
+                      <div className="text-center text-muted small">Hiển thị tất cả {pagination.total_items} sản phẩm</div>
                     )}
                   </div>
                 )}
@@ -851,6 +1014,147 @@ const ProductManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal tạo/sửa sản phẩm */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h5>
+                <button type="button" className="btn-close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Tên sản phẩm *</label>
+                      <input type="text" className="form-control" value={modalForm.goods_name} onChange={(e) => handleModalFormChange("goods_name", e.target.value)} placeholder="Nhập tên sản phẩm" />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Mã vạch *</label>
+                      <input type="text" className="form-control" value={modalForm.barcode} onChange={(e) => handleModalFormChange("barcode", e.target.value)} placeholder="Nhập mã vạch" />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Đơn vị tính *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={modalForm.unit_of_measure}
+                        onChange={(e) => handleModalFormChange("unit_of_measure", e.target.value)}
+                        placeholder="VD: cái, hộp, kg, lít"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Danh mục</label>
+                      <select className="form-control" value={modalForm.category_id} onChange={(e) => handleModalFormChange("category_id", e.target.value)}>
+                        <option value="">Chọn danh mục</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Giá bán *</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={modalForm.selling_price}
+                        onChange={(e) => handleModalFormChange("selling_price", e.target.value)}
+                        placeholder="Nhập giá bán"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Giá vốn</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={modalForm.average_import_price}
+                        onChange={(e) => handleModalFormChange("average_import_price", e.target.value)}
+                        placeholder="Nhập giá vốn"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Số lượng tồn kho</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={modalForm.stock_quantity}
+                        onChange={(e) => handleModalFormChange("stock_quantity", e.target.value)}
+                        placeholder="Nhập số lượng"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="form-label">Tồn kho tối thiểu</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={modalForm.minimum_stock_quantity}
+                        onChange={(e) => handleModalFormChange("minimum_stock_quantity", e.target.value)}
+                        placeholder="Nhập tồn kho tối thiểu"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-12">
+                    <div className="mb-3">
+                      <label className="form-label">Mô tả</label>
+                      <textarea
+                        className="form-control"
+                        rows="3"
+                        value={modalForm.description}
+                        onChange={(e) => handleModalFormChange("description", e.target.value)}
+                        placeholder="Nhập mô tả sản phẩm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
+                  disabled={loading || !modalForm.goods_name || !modalForm.barcode || !modalForm.unit_of_measure || !modalForm.selling_price}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" />
+                      Đang xử lý...
+                    </>
+                  ) : editingProduct ? (
+                    "Cập nhật"
+                  ) : (
+                    "Tạo mới"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </CashierLayout>
   );
 };

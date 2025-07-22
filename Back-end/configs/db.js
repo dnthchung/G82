@@ -58,13 +58,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded shift types:",
-        shiftTypes.map((s) => s.name)
+        shiftTypes.map((s) => s.name),
       );
     } else {
       shiftTypes = await db.ShiftType.find();
       console.log(
         "Existing shift types:",
-        shiftTypes.map((s) => s.name)
+        shiftTypes.map((s) => s.name),
       );
     }
 
@@ -93,13 +93,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded roles:",
-        roles.map((r) => ({ name: r.name, code: r.code }))
+        roles.map((r) => ({ name: r.name, code: r.code })),
       );
     } else {
       roles = await db.Role.find();
       console.log(
         "Existing roles:",
-        roles.map((r) => ({ name: r.name, code: r.code }))
+        roles.map((r) => ({ name: r.name, code: r.code })),
       );
     }
 
@@ -154,13 +154,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded accounts:",
-        accounts.map((a) => a.username)
+        accounts.map((a) => a.username),
       );
     } else {
       accounts = await db.Account.find();
       console.log(
         "Existing accounts:",
-        accounts.map((a) => a.username)
+        accounts.map((a) => a.username),
       );
     }
 
@@ -203,17 +203,17 @@ const connectDB = async () => {
         accounts.map((acc, idx) => ({
           user_id: acc._id, // Liên kết 1-1
           ...defaultUserDetails[idx], // Trộn dữ liệu mẫu
-        }))
+        })),
       );
       console.log(
         "Seeded user details:",
-        userDetails.map((u) => u.full_name)
+        userDetails.map((u) => u.full_name),
       );
     } else {
       userDetails = await db.UserDetail.find();
       console.log(
         "Existing user details:",
-        userDetails.map((u) => u.full_name)
+        userDetails.map((u) => u.full_name),
       );
     }
 
@@ -254,13 +254,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded shifts:",
-        shifts.map((s) => s.notes)
+        shifts.map((s) => s.notes),
       );
     } else {
       shifts = await db.Shift.find();
       console.log(
         "Existing shifts:",
-        shifts.map((s) => s.notes)
+        shifts.map((s) => s.notes),
       );
     }
 
@@ -298,8 +298,7 @@ const connectDB = async () => {
           display_quantity: 20,
           minimum_stock_quantity: 10,
           is_active: true,
-          image_url:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/1200px-Coca_Cola_Flasche_-_Original_Taste.jpg",
+          image_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Coca_Cola_Flasche_-_Original_Taste.jpg/1200px-Coca_Cola_Flasche_-_Original_Taste.jpg",
         },
         {
           goods_name: "Snack Oishi",
@@ -315,8 +314,7 @@ const connectDB = async () => {
           display_quantity: 10,
           minimum_stock_quantity: 5,
           is_active: true,
-          image_url:
-            "https://product.hstatic.net/200000495609/product/snack-tom-cay-oishi-du-vi-goi-lon-68g-banh-keo-an-vat-imnuts_d3ff6a241a9e4bb28aea097f9eca7166.jpg",
+          image_url: "https://product.hstatic.net/200000495609/product/snack-tom-cay-oishi-du-vi-goi-lon-68g-banh-keo-an-vat-imnuts_d3ff6a241a9e4bb28aea097f9eca7166.jpg",
         },
         {
           goods_name: "Bánh mì sandwich",
@@ -426,13 +424,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded suppliers:",
-        suppliers.map((s) => s.suplier_name)
+        suppliers.map((s) => s.suplier_name),
       );
     } else {
       suppliers = await db.Supplier.find();
       console.log(
         "Existing suppliers:",
-        suppliers.map((s) => s.suplier_name)
+        suppliers.map((s) => s.suplier_name),
       );
     }
 
@@ -440,12 +438,7 @@ const connectDB = async () => {
     let purchaseOrders = [];
     const purchaseOrderCount = await db.PurchaseOrder.countDocuments();
     console.log(`PurchaseOrder count: ${purchaseOrderCount}`);
-    if (
-      purchaseOrderCount === 0 &&
-      suppliers.length > 0 &&
-      goods.length > 0 &&
-      accounts.length > 0
-    ) {
+    if (purchaseOrderCount === 0 && suppliers.length > 0 && goods.length > 0 && accounts.length > 0) {
       purchaseOrders = await db.PurchaseOrder.insertMany([
         {
           order_number: "PO001",
@@ -532,13 +525,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded purchase orders:",
-        purchaseOrders.map((po) => po.order_number)
+        purchaseOrders.map((po) => po.order_number),
       );
     } else {
       purchaseOrders = await db.PurchaseOrder.find();
       console.log(
         "Existing purchase orders:",
-        purchaseOrders.map((po) => po.order_number)
+        purchaseOrders.map((po) => po.order_number),
       );
     }
 
@@ -591,13 +584,13 @@ const connectDB = async () => {
       ]);
       console.log(
         "Seeded import batches:",
-        importBatches.map((ib) => ib.import_receipt_number)
+        importBatches.map((ib) => ib.import_receipt_number),
       );
     } else {
       importBatches = await db.ImportBatch.find();
       console.log(
         "Existing import batches:",
-        importBatches.map((ib) => ib.import_receipt_number)
+        importBatches.map((ib) => ib.import_receipt_number),
       );
     }
 
@@ -714,12 +707,8 @@ const connectDB = async () => {
     if (statuses.length > 0 && shifts.length > 0) {
       const statusPaid = statuses.find((s) => s.name === "Đã thanh toán");
       const statusReturned = statuses.find((s) => s.name === "Đã trả hàng");
-      const shiftMorning = shifts.find(
-        (s) => s.notes === "Ca sáng ngày 14/06/2025"
-      );
-      const shiftAfternoon = shifts.find(
-        (s) => s.notes === "Ca chiều ngày 14/06/2025"
-      );
+      const shiftMorning = shifts.find((s) => s.notes === "Ca sáng ngày 14/06/2025");
+      const shiftAfternoon = shifts.find((s) => s.notes === "Ca chiều ngày 14/06/2025");
       const billsToInsert = [];
       if (statusPaid && shiftMorning) {
         billsToInsert.push({
@@ -732,9 +721,7 @@ const connectDB = async () => {
           shift_id: shiftMorning._id,
         });
       } else {
-        console.warn(
-          "Không tìm thấy status 'Đã thanh toán' hoặc shift 'Ca sáng ngày 14/06/2025', bỏ qua HD001"
-        );
+        console.warn("Không tìm thấy status 'Đã thanh toán' hoặc shift 'Ca sáng ngày 14/06/2025', bỏ qua HD001");
       }
       if (statusReturned && shiftAfternoon) {
         billsToInsert.push({
@@ -747,9 +734,7 @@ const connectDB = async () => {
           shift_id: shiftAfternoon._id,
         });
       } else {
-        console.warn(
-          "Không tìm thấy status 'Đã trả hàng' hoặc shift 'Ca chiều ngày 14/06/2025', bỏ qua HD002"
-        );
+        console.warn("Không tìm thấy status 'Đã trả hàng' hoặc shift 'Ca chiều ngày 14/06/2025', bỏ qua HD002");
       }
       if (billsToInsert.length > 0) {
         bills = await db.Bill.insertMany(billsToInsert);
@@ -818,20 +803,14 @@ const connectDB = async () => {
       await db.BillDetail.insertMany(billDetails);
       console.log("Seeded bill details with new data!");
     } else {
-      console.warn(
-        "Not enough bills or goods to seed bill details. Skipping bill details seeding."
-      );
+      console.warn("Not enough bills or goods to seed bill details. Skipping bill details seeding.");
     }
 
     // Tạo thêm 10 bill mới
     if (statuses.length > 0 && shifts.length > 0) {
       const statusPaid = statuses.find((s) => s.name === "Đã thanh toán");
-      const shiftMorning = shifts.find(
-        (s) => s.notes === "Ca sáng ngày 14/06/2025"
-      );
-      const shiftAfternoon = shifts.find(
-        (s) => s.notes === "Ca chiều ngày 14/06/2025"
-      );
+      const shiftMorning = shifts.find((s) => s.notes === "Ca sáng ngày 14/06/2025");
+      const shiftAfternoon = shifts.find((s) => s.notes === "Ca chiều ngày 14/06/2025");
 
       const extraBills = [];
       for (let i = 3; i <= 12; i++) {
@@ -999,15 +978,13 @@ const connectDB = async () => {
           status: "approved",
           approved_by: accounts[2]._id, // Lê Văn C (manager1)
           confirmed_by: accounts[0]._id, // Nguyễn Văn A (admin1)
-          notes:
-            "Hủy 15 chiếc bánh mì hết hạn, đã được phê duyệt và xác nhận thực hiện",
+          notes: "Hủy 15 chiếc bánh mì hết hạn, đã được phê duyệt và xác nhận thực hiện",
         },
         {
           disposal_number: "HUY002",
           created_by: accounts[1]._id, // Trần Thị B (admin2)
           disposal_date: new Date("2025-06-15T10:00:00Z"),
-          reason_for_disposal:
-            "Hàng hóa bị hỏng trong quá trình vận chuyển và bảo quản",
+          reason_for_disposal: "Hàng hóa bị hỏng trong quá trình vận chuyển và bảo quản",
           disposal_items: [disposalItems[1]._id, disposalItems[2]._id], // Coca Cola hỏng + Snack ẩm mốc
           total_disposal_value: 5 * 8500 + 3 * 9500, // 42,500 + 28,500 = 71,000
           status: "pending",
@@ -1017,8 +994,7 @@ const connectDB = async () => {
           disposal_number: "HUY003",
           created_by: accounts[3]._id, // Phạm Thị D (staff1)
           disposal_date: new Date("2025-06-17T09:15:00Z"),
-          reason_for_disposal:
-            "Kiểm tra định kỳ phát hiện hàng có dấu hiệu hư hỏng",
+          reason_for_disposal: "Kiểm tra định kỳ phát hiện hàng có dấu hiệu hư hỏng",
           disposal_items: [], // Chưa có items cụ thể
           total_disposal_value: 0,
           status: "cancelled",
