@@ -1,18 +1,109 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import CashierLayout from "./cashier/CashierLayout";
+import { dashboardService } from "../services/dashboardService";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-  // Data for top selling products chart
+  // State for dashboard data
+  const [overviewStats, setOverviewStats] = useState({
+    monthlyRevenue: 0,
+    monthlyProfit: 0,
+    monthlyOrders: 0,
+    inventoryValue: 0,
+  });
+  const [topProducts, setTopProducts] = useState([]);
+  const [staffPerformance, setStaffPerformance] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [monthlyProfit, setMonthlyProfit] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch all dashboard data in parallel
+        const [overviewResponse, topProductsResponse, staffResponse, lowStockResponse, revenueResponse, profitResponse] = await Promise.all([
+          dashboardService.getOverviewStats(),
+          dashboardService.getTopSellingProducts(),
+          dashboardService.getStaffPerformance(),
+          dashboardService.getLowStockProducts(),
+          dashboardService.getMonthlyRevenue(),
+          dashboardService.getMonthlyProfit(),
+        ]);
+
+        // Update state with fetched data
+        if (overviewResponse.success) {
+          setOverviewStats(overviewResponse.data);
+        }
+        if (topProductsResponse.success) {
+          setTopProducts(topProductsResponse.data);
+        }
+        if (staffResponse.success) {
+          setStaffPerformance(staffResponse.data);
+        }
+        if (lowStockResponse.success) {
+          setLowStockProducts(lowStockResponse.data);
+        }
+        if (revenueResponse.success) {
+          setMonthlyRevenue(revenueResponse.data);
+        }
+        if (profitResponse.success) {
+          setMonthlyProfit(profitResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Không thể tải dữ liệu dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Refresh dashboard data function
+  const refreshDashboard = async () => {
+    setLoading(true);
+    try {
+      const [overviewResponse, topProductsResponse, staffResponse, lowStockResponse, revenueResponse, profitResponse] = await Promise.all([
+        dashboardService.getOverviewStats(),
+        dashboardService.getTopSellingProducts(),
+        dashboardService.getStaffPerformance(),
+        dashboardService.getLowStockProducts(),
+        dashboardService.getMonthlyRevenue(),
+        dashboardService.getMonthlyProfit(),
+      ]);
+
+      if (overviewResponse.success) setOverviewStats(overviewResponse.data);
+      if (topProductsResponse.success) setTopProducts(topProductsResponse.data);
+      if (staffResponse.success) setStaffPerformance(staffResponse.data);
+      if (lowStockResponse.success) setLowStockProducts(lowStockResponse.data);
+      if (revenueResponse.success) setMonthlyRevenue(revenueResponse.data);
+      if (profitResponse.success) setMonthlyProfit(profitResponse.data);
+
+      setError(null);
+    } catch (err) {
+      console.error("Error refreshing dashboard data:", err);
+      setError("Không thể làm mới dữ liệu dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Prepare chart data based on API responses
   const topProductsData = {
-    labels: ["Áo phông", "Quần jeans", "Giày thể thao", "Váy đầm", "Áo khoác", "Túi xách", "Đồng hồ", "Dép", "Quần short", "Mũ"],
+    labels: topProducts.length > 0 ? topProducts.map((item) => item.productName || "N/A") : ["Chưa có dữ liệu"],
     datasets: [
       {
         label: "Số lượng bán",
-        data: [85, 78, 65, 58, 52, 48, 42, 38, 32, 28],
+        data: topProducts.length > 0 ? topProducts.map((item) => item.totalQuantity || 0) : [0],
         backgroundColor: ["#FF6B9D", "#4ECDC4", "#FFD93D", "#6BCF7F", "#A8E6CF", "#FFB347", "#87CEEB", "#DDA0DD", "#F0E68C", "#98FB98"],
         borderWidth: 0,
         borderRadius: 8,
@@ -22,11 +113,11 @@ const Dashboard = () => {
 
   // Data for monthly revenue chart
   const monthlyRevenueData = {
-    labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
+    labels: monthlyRevenue.length > 0 ? monthlyRevenue.map((item) => item.month || "") : ["Chưa có dữ liệu"],
     datasets: [
       {
         label: "Doanh thu (VNĐ)",
-        data: [80000000, 95000000, 110000000, 105000000, 120000000, 115000000],
+        data: monthlyRevenue.length > 0 ? monthlyRevenue.map((item) => item.revenue || 0) : [0],
         borderColor: "#4A90E2",
         backgroundColor: "rgba(74, 144, 226, 0.1)",
         fill: true,
@@ -41,11 +132,11 @@ const Dashboard = () => {
 
   // Data for monthly profit chart
   const monthlyProfitData = {
-    labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
+    labels: monthlyProfit.length > 0 ? monthlyProfit.map((item) => item.month || "") : ["Chưa có dữ liệu"],
     datasets: [
       {
         label: "Lợi nhuận gộp (VNĐ)",
-        data: [24000000, 28000000, 33000000, 31500000, 36000000, 34500000],
+        data: monthlyProfit.length > 0 ? monthlyProfit.map((item) => item.profit || 0) : [0],
         borderColor: "#9B59B6",
         backgroundColor: "rgba(155, 89, 182, 0.1)",
         fill: true,
@@ -118,24 +209,13 @@ const Dashboard = () => {
     },
   };
 
-  const topProductsTableData = [
-    { name: "Giày thể thao", quantity: 15, status: "Bán chạy" },
-    { name: "Quần jean nữ", quantity: 80, status: "Hết hàng" },
-    { name: "Áo sơ mi nam", quantity: 30, status: "Bán ít" },
-    { name: "Váy đầm", quantity: 25, status: "Bán ít" },
-    { name: "Túi xách nữ", quantity: 10, status: "Bán chạy" },
-    { name: "Kính râm", quantity: 55, status: "Bình thường" },
-    { name: "Đồng hồ nam", quantity: 5, status: "Bán chạy" },
-    { name: "Mũ bucket", quantity: 20, status: "Bán ít" },
-    { name: "Dép ai thông vnh", quantity: 40, status: "Bình thường" },
-    { name: "Khăn quàng cổ", quantity: 18, status: "Bán chạy" },
-  ];
-
-  const staffPerformanceData = [
-    { name: "Nguyễn Văn A", target: "25.000.000 VNĐ", orders: 52, rating: "Giỏi" },
-    { name: "Trần Thị B", target: "22.000.000 VNĐ", orders: 110, rating: "Tốt" },
-    { name: "Lê Văn C", target: "18.000.000 VNĐ", orders: 95, rating: "Khá" },
-  ];
+  // Helper function to format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
 
   const getStatusColorName = (status) => {
     switch (status) {
@@ -163,6 +243,36 @@ const Dashboard = () => {
     }
   };
 
+  // Show loading spinner if data is loading
+  if (loading) {
+    return (
+      <CashierLayout pageTitle="Dashboard Quản Lý" breadcrumb="Dashboard Quản Lý">
+        <div className="container-fluid bg-light min-vh-100 py-4 d-flex justify-content-center align-items-center">
+          <div className="text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-2">Đang tải dữ liệu dashboard...</p>
+          </div>
+        </div>
+      </CashierLayout>
+    );
+  }
+
+  // Show error message if there's an error
+  if (error) {
+    return (
+      <CashierLayout pageTitle="Dashboard Quản Lý" breadcrumb="Dashboard Quản Lý">
+        <div className="container-fluid bg-light min-vh-100 py-4">
+          <div className="alert alert-danger text-center" role="alert">
+            <i className="fas fa-exclamation-triangle me-2"></i>
+            {error}
+          </div>
+        </div>
+      </CashierLayout>
+    );
+  }
+
   return (
     <CashierLayout pageTitle="Dashboard Quản Lý" breadcrumb="Dashboard Quản Lý">
       <div className="container-fluid bg-light min-vh-100 py-4">
@@ -181,8 +291,12 @@ const Dashboard = () => {
           {/* Quick Actions - Moved to top */}
           <div className="col-12 mb-4">
             <div className="card border-0 shadow-sm">
-              <div className="card-header bg-white border-0 pb-0">
-                <h5 className="card-title fw-bold text-dark">Tác vụ nhanh</h5>
+              <div className="card-header bg-white border-0 pb-0 d-flex justify-content-between align-items-center">
+                <h5 className="card-title fw-bold text-dark mb-0">Tác vụ nhanh</h5>
+                <button className="btn btn-outline-primary btn-sm d-flex align-items-center" onClick={refreshDashboard} disabled={loading}>
+                  <i className={`fas fa-sync-alt me-2 ${loading ? "fa-spin" : ""}`}></i>
+                  Làm mới dữ liệu
+                </button>
               </div>
               <div className="card-body">
                 <div className="row g-2">
@@ -222,7 +336,7 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="card-subtitle mb-2 text-white-50">Tổng doanh thu tháng</h6>
-                    <h3 className="card-title fw-bold mb-0">125.000.000 VNĐ</h3>
+                    <h3 className="card-title fw-bold mb-0">{formatCurrency(overviewStats.monthlyRevenue)}</h3>
                   </div>
                   <div className="bg-white bg-opacity-20 p-3 rounded-circle">
                     <i className="fas fa-chart-line fa-lg"></i>
@@ -238,7 +352,7 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="card-subtitle mb-2 text-white-50">Lợi nhuận tháng</h6>
-                    <h3 className="card-title fw-bold mb-0">45.000.000 VNĐ</h3>
+                    <h3 className="card-title fw-bold mb-0">{formatCurrency(overviewStats.monthlyProfit)}</h3>
                   </div>
                   <div className="bg-white bg-opacity-20 p-3 rounded-circle">
                     <i className="fas fa-coins fa-lg"></i>
@@ -254,7 +368,7 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="card-subtitle mb-2 text-white-50">Số đơn đã bán</h6>
-                    <h3 className="card-title fw-bold mb-0">1500</h3>
+                    <h3 className="card-title fw-bold mb-0">{overviewStats.monthlyOrders}</h3>
                   </div>
                   <div className="bg-white bg-opacity-20 p-3 rounded-circle">
                     <i className="fas fa-shopping-cart fa-lg"></i>
@@ -270,7 +384,7 @@ const Dashboard = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="card-subtitle mb-2 text-white-50">Giá trị tồn kho</h6>
-                    <h3 className="card-title fw-bold mb-0">80.000.000 VNĐ</h3>
+                    <h3 className="card-title fw-bold mb-0">{formatCurrency(overviewStats.inventoryValue)}</h3>
                   </div>
                   <div className="bg-white bg-opacity-20 p-3 rounded-circle">
                     <i className="fas fa-wallet fa-lg"></i>
@@ -314,16 +428,24 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {staffPerformanceData.map((staff, index) => (
-                        <tr key={index}>
-                          <td className="fw-medium">{staff.name}</td>
-                          <td className="text-primary fw-medium">{staff.target}</td>
-                          <td>{staff.orders}</td>
-                          <td>
-                            <span className={`badge rounded-pill bg-${getRatingColorName(staff.rating)}-subtle text-${getRatingColorName(staff.rating)}-emphasis`}>{staff.rating}</span>
+                      {staffPerformance.length > 0 ? (
+                        staffPerformance.map((staff, index) => (
+                          <tr key={index}>
+                            <td className="fw-medium">{staff.name}</td>
+                            <td className="text-primary fw-medium">{formatCurrency(staff.totalRevenue)}</td>
+                            <td>{staff.orderCount}</td>
+                            <td>
+                              <span className={`badge rounded-pill bg-${getRatingColorName(staff.rating)}-subtle text-${getRatingColorName(staff.rating)}-emphasis`}>{staff.rating}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="text-center text-muted">
+                            Chưa có dữ liệu hiệu suất nhân viên
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -350,15 +472,23 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {topProductsTableData.slice(0, 8).map((product, index) => (
-                        <tr key={index}>
-                          <td className="fw-medium">{product.name}</td>
-                          <td>{product.quantity}</td>
-                          <td>
-                            <span className={`badge rounded-pill bg-${getStatusColorName(product.status)}-subtle text-${getStatusColorName(product.status)}-emphasis`}>{product.status}</span>
+                      {lowStockProducts.length > 0 ? (
+                        lowStockProducts.slice(0, 8).map((product, index) => (
+                          <tr key={index}>
+                            <td className="fw-medium">{product.name}</td>
+                            <td>{product.quantity}</td>
+                            <td>
+                              <span className={`badge rounded-pill bg-${getStatusColorName(product.status)}-subtle text-${getStatusColorName(product.status)}-emphasis`}>{product.status}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="text-center text-muted">
+                            Chưa có dữ liệu sản phẩm tồn kho ít
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
