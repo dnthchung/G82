@@ -1017,143 +1017,171 @@ const ProductManagement = () => {
 
       {/* Modal tạo/sửa sản phẩm */}
       {showModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h5>
-                <button type="button" className="btn-close" onClick={closeModal}></button>
-              </div>
-              <div className="modal-body">
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Tên sản phẩm *</label>
-                      <input type="text" className="form-control" value={modalForm.goods_name} onChange={(e) => handleModalFormChange("goods_name", e.target.value)} placeholder="Nhập tên sản phẩm" />
+        <>
+          <div className="modal-backdrop fade show" onClick={closeModal} style={{ zIndex: 1040 }}></div>
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{
+              zIndex: 1050,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                closeModal();
+              }
+            }}
+          >
+            <div className="modal-dialog modal-lg" style={{ margin: 0, maxWidth: "800px", width: "90%" }}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h5>
+                  <button type="button" className="btn-close" onClick={closeModal}></button>
+                </div>
+                <div className="modal-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Tên sản phẩm *</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={modalForm.goods_name}
+                          onChange={(e) => handleModalFormChange("goods_name", e.target.value)}
+                          placeholder="Nhập tên sản phẩm"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Mã vạch *</label>
-                      <input type="text" className="form-control" value={modalForm.barcode} onChange={(e) => handleModalFormChange("barcode", e.target.value)} placeholder="Nhập mã vạch" />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Mã vạch *</label>
+                        <input type="text" className="form-control" value={modalForm.barcode} onChange={(e) => handleModalFormChange("barcode", e.target.value)} placeholder="Nhập mã vạch" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Đơn vị tính *</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={modalForm.unit_of_measure}
-                        onChange={(e) => handleModalFormChange("unit_of_measure", e.target.value)}
-                        placeholder="VD: cái, hộp, kg, lít"
-                      />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Đơn vị tính *</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={modalForm.unit_of_measure}
+                          onChange={(e) => handleModalFormChange("unit_of_measure", e.target.value)}
+                          placeholder="VD: cái, hộp, kg, lít"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Danh mục</label>
-                      <select className="form-control" value={modalForm.category_id} onChange={(e) => handleModalFormChange("category_id", e.target.value)}>
-                        <option value="">Chọn danh mục</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Danh mục</label>
+                        <select className="form-control" value={modalForm.category_id} onChange={(e) => handleModalFormChange("category_id", e.target.value)}>
+                          <option value="">Chọn danh mục</option>
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Giá bán *</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={modalForm.selling_price}
-                        onChange={(e) => handleModalFormChange("selling_price", e.target.value)}
-                        placeholder="Nhập giá bán"
-                        min="0"
-                      />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Giá bán *</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={modalForm.selling_price}
+                          onChange={(e) => handleModalFormChange("selling_price", e.target.value)}
+                          placeholder="Nhập giá bán"
+                          min="0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Giá vốn</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={modalForm.average_import_price}
-                        onChange={(e) => handleModalFormChange("average_import_price", e.target.value)}
-                        placeholder="Nhập giá vốn"
-                        min="0"
-                      />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Giá vốn</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={modalForm.average_import_price}
+                          onChange={(e) => handleModalFormChange("average_import_price", e.target.value)}
+                          placeholder="Nhập giá vốn"
+                          min="0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Số lượng tồn kho</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={modalForm.stock_quantity}
-                        onChange={(e) => handleModalFormChange("stock_quantity", e.target.value)}
-                        placeholder="Nhập số lượng"
-                        min="0"
-                      />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Số lượng tồn kho</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={modalForm.stock_quantity}
+                          onChange={(e) => handleModalFormChange("stock_quantity", e.target.value)}
+                          placeholder="Nhập số lượng"
+                          min="0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Tồn kho tối thiểu</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={modalForm.minimum_stock_quantity}
-                        onChange={(e) => handleModalFormChange("minimum_stock_quantity", e.target.value)}
-                        placeholder="Nhập tồn kho tối thiểu"
-                        min="0"
-                      />
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Tồn kho tối thiểu</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={modalForm.minimum_stock_quantity}
+                          onChange={(e) => handleModalFormChange("minimum_stock_quantity", e.target.value)}
+                          placeholder="Nhập tồn kho tối thiểu"
+                          min="0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-12">
-                    <div className="mb-3">
-                      <label className="form-label">Mô tả</label>
-                      <textarea
-                        className="form-control"
-                        rows="3"
-                        value={modalForm.description}
-                        onChange={(e) => handleModalFormChange("description", e.target.value)}
-                        placeholder="Nhập mô tả sản phẩm"
-                      />
+                    <div className="col-12">
+                      <div className="mb-3">
+                        <label className="form-label">Mô tả</label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          value={modalForm.description}
+                          onChange={(e) => handleModalFormChange("description", e.target.value)}
+                          placeholder="Nhập mô tả sản phẩm"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                  Hủy
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
-                  disabled={loading || !modalForm.goods_name || !modalForm.barcode || !modalForm.unit_of_measure || !modalForm.selling_price}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" />
-                      Đang xử lý...
-                    </>
-                  ) : editingProduct ? (
-                    "Cập nhật"
-                  ) : (
-                    "Tạo mới"
-                  )}
-                </button>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
+                    disabled={loading || !modalForm.goods_name || !modalForm.barcode || !modalForm.unit_of_measure || !modalForm.selling_price}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" />
+                        Đang xử lý...
+                      </>
+                    ) : editingProduct ? (
+                      "Cập nhật"
+                    ) : (
+                      "Tạo mới"
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </CashierLayout>
   );
