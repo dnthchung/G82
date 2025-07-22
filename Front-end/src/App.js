@@ -16,6 +16,7 @@ import CloseShift from "./components/CloseShift";
 import POS from "./components/POS";
 import CashierSidebar from "./components/CashierSidebar";
 import Dashboard from "./components/Dashboard";
+import ProductManagement from "./components/ProductManagement";
 
 import { UIProvider } from "./contexts/UIContext";
 import InventorySchedule from "./pages/InventorySchedule/InventorySchedule";
@@ -45,6 +46,7 @@ function App() {
           <Route path="/openshift" element={<OpenShift />} />
           <Route path="/bill-history" element={<BillHistoryPage />} />
           <Route path="/import-history" element={<ImportHistory />} />
+          <Route path="/product-management" element={<ProductManagement />} />
           <Route path="/inventory/inventory-schedule" element={<InventorySchedule />} />
           <Route path="/inventory/inventory-schedule/inventory-control" element={<Inventory />} />
           <Route path="/page" element={<Page />} />
