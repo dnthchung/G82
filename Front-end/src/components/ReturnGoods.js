@@ -106,22 +106,16 @@ export default function ReturnGoods() {
     let filtered = allOrders;
 
     // Filter by shift first
-    filtered = filtered.filter((order) =>
-      isOrderInShift(order.date, selectedShift)
-    );
+    filtered = filtered.filter((order) => isOrderInShift(order.date, selectedShift));
 
     // Then filter by time slot (if not "Tất cả")
     if (selectedTimeSlot !== "Tất cả") {
-      filtered = filtered.filter((order) =>
-        isOrderInTimeSlot(order.date, selectedTimeSlot)
-      );
+      filtered = filtered.filter((order) => isOrderInTimeSlot(order.date, selectedTimeSlot));
     }
 
     // Finally filter by search query if provided
     if (searchOrderId.trim() !== "") {
-      filtered = filtered.filter((order) =>
-        order.id.toLowerCase().includes(searchOrderId.toLowerCase())
-      );
+      filtered = filtered.filter((order) => order.id.toLowerCase().includes(searchOrderId.toLowerCase()));
     }
 
     setFilteredOrders(filtered);
@@ -134,9 +128,7 @@ export default function ReturnGoods() {
       setLoadingOrderDetails(true);
       setError(null);
 
-      const response = await ReturnOrderService.getBillDetailsForReturn(
-        order._id
-      );
+      const response = await ReturnOrderService.getBillDetailsForReturn(order._id);
 
       if (response.success) {
         const orderData = response.data;
@@ -168,9 +160,7 @@ export default function ReturnGoods() {
     if (!searchTerm.trim()) {
       setFilteredReturnItems(returnItems);
     } else {
-      const filtered = returnItems.filter((item) =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const filtered = returnItems.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
       setFilteredReturnItems(filtered);
     }
   };
@@ -179,10 +169,7 @@ export default function ReturnGoods() {
   const handleReturnItemChange = (filteredIndex, field, value) => {
     // Find the actual item in returnItems array
     const filteredItem = filteredReturnItems[filteredIndex];
-    const actualIndex = returnItems.findIndex(
-      (item) =>
-        item.name === filteredItem.name && item.price === filteredItem.price
-    );
+    const actualIndex = returnItems.findIndex((item) => item.name === filteredItem.name && item.price === filteredItem.price);
 
     if (actualIndex !== -1) {
       const updated = [...returnItems];
@@ -208,9 +195,7 @@ export default function ReturnGoods() {
 
   // Handle return submission
   const handleReturnSubmit = () => {
-    const selectedItems = returnItems.filter(
-      (item) => item.selected && item.returnQuantity > 0
-    );
+    const selectedItems = returnItems.filter((item) => item.selected && item.returnQuantity > 0);
     if (selectedItems.length === 0) {
       alert("Vui lòng chọn ít nhất một sản phẩm để trả hàng");
       return;
@@ -230,9 +215,7 @@ export default function ReturnGoods() {
       setSubmittingReturn(true);
       setError(null);
 
-      const selectedItems = returnItems.filter(
-        (item) => item.selected && item.returnQuantity > 0
-      );
+      const selectedItems = returnItems.filter((item) => item.selected && item.returnQuantity > 0);
 
       const returnData = {
         bill_id: selectedOrder._id,
@@ -300,19 +283,11 @@ export default function ReturnGoods() {
 
     // Previous button
     pages.push(
-      <li
-        key="prev"
-        className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-      >
-        <button
-          className="page-link"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          title="Trang trước"
-        >
+      <li key="prev" className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+        <button className="page-link" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} title="Trang trước">
           ‹
         </button>
-      </li>
+      </li>,
     );
 
     // First page
@@ -322,14 +297,14 @@ export default function ReturnGoods() {
           <button className="page-link" onClick={() => handlePageChange(1)}>
             1
           </button>
-        </li>
+        </li>,
       );
 
       if (currentPage > 3) {
         pages.push(
           <li key="dots1" className="page-item disabled">
             <span className="page-link">...</span>
-          </li>
+          </li>,
         );
       }
     }
@@ -340,14 +315,11 @@ export default function ReturnGoods() {
 
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
-        <li
-          key={i}
-          className={`page-item ${currentPage === i ? "active" : ""}`}
-        >
+        <li key={i} className={`page-item ${currentPage === i ? "active" : ""}`}>
           <button className="page-link" onClick={() => handlePageChange(i)}>
             {i}
           </button>
-        </li>
+        </li>,
       );
     }
 
@@ -357,37 +329,26 @@ export default function ReturnGoods() {
         pages.push(
           <li key="dots2" className="page-item disabled">
             <span className="page-link">...</span>
-          </li>
+          </li>,
         );
       }
 
       pages.push(
         <li key={totalPages} className="page-item">
-          <button
-            className="page-link"
-            onClick={() => handlePageChange(totalPages)}
-          >
+          <button className="page-link" onClick={() => handlePageChange(totalPages)}>
             {totalPages}
           </button>
-        </li>
+        </li>,
       );
     }
 
     // Next button
     pages.push(
-      <li
-        key="next"
-        className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
-      >
-        <button
-          className="page-link"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          title="Trang sau"
-        >
+      <li key="next" className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+        <button className="page-link" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} title="Trang sau">
           ›
         </button>
-      </li>
+      </li>,
     );
 
     return pages;
@@ -423,16 +384,8 @@ export default function ReturnGoods() {
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h6 className="card-title mb-0">Lịch sử đơn hàng (24 giờ)</h6>
                 <div className="d-flex gap-2">
-                  <span className="badge bg-primary small">
-                    {selectedShift}
-                  </span>
-                  <span className="badge bg-secondary small">
-                    {selectedTimeSlot === "Tất cả"
-                      ? selectedShift === "Ca sáng"
-                        ? "8h-15h"
-                        : "15h-22h"
-                      : selectedTimeSlot}
-                  </span>
+                  <span className="badge bg-primary small">{selectedShift}</span>
+                  <span className="badge bg-secondary small">{selectedTimeSlot === "Tất cả" ? (selectedShift === "Ca sáng" ? "8h-15h" : "15h-22h") : selectedTimeSlot}</span>
                 </div>
               </div>
 
@@ -462,7 +415,7 @@ export default function ReturnGoods() {
                   }}
                 />
                 <button
-                  className="btn btn-outline-secondary"
+                  className="btn btn-secondary"
                   onClick={handleSearch}
                   type="button"
                   style={{
@@ -485,27 +438,13 @@ export default function ReturnGoods() {
                 <label className="form-label text-muted small">Chọn ca:</label>
                 <div className="d-flex gap-3">
                   <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="shift"
-                      id="morning"
-                      checked={selectedShift === "Ca sáng"}
-                      onChange={() => setSelectedShift("Ca sáng")}
-                    />
+                    <input className="form-check-input" type="radio" name="shift" id="morning" checked={selectedShift === "Ca sáng"} onChange={() => setSelectedShift("Ca sáng")} />
                     <label className="form-check-label" htmlFor="morning">
                       Ca sáng
                     </label>
                   </div>
                   <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="shift"
-                      id="afternoon"
-                      checked={selectedShift === "Ca chiều"}
-                      onChange={() => setSelectedShift("Ca chiều")}
-                    />
+                    <input className="form-check-input" type="radio" name="shift" id="afternoon" checked={selectedShift === "Ca chiều"} onChange={() => setSelectedShift("Ca chiều")} />
                     <label className="form-check-label" htmlFor="afternoon">
                       Ca chiều
                     </label>
@@ -515,14 +454,8 @@ export default function ReturnGoods() {
 
               {/* Time Slot */}
               <div className="mb-3">
-                <label className="form-label text-muted small">
-                  Khung giờ:
-                </label>
-                <select
-                  className="form-select"
-                  value={selectedTimeSlot}
-                  onChange={(e) => setSelectedTimeSlot(e.target.value)}
-                >
+                <label className="form-label text-muted small">Khung giờ:</label>
+                <select className="form-select" value={selectedTimeSlot} onChange={(e) => setSelectedTimeSlot(e.target.value)}>
                   <option value="Tất cả">Tất cả</option>
                   {selectedShift === "Ca sáng" ? (
                     <>
@@ -555,8 +488,7 @@ export default function ReturnGoods() {
                     {loading ? (
                       <tr>
                         <td className="py-4 text-center text-muted">
-                          <div className="spinner-border spinner-border-sm me-2"></div>{" "}
-                          Đang tải danh sách hóa đơn...
+                          <div className="spinner-border spinner-border-sm me-2"></div> Đang tải danh sách hóa đơn...
                         </td>
                       </tr>
                     ) : currentOrders.length > 0 ? (
@@ -565,31 +497,16 @@ export default function ReturnGoods() {
                           <td className="py-3">
                             <div className="d-flex justify-content-between align-items-center">
                               <div>
-                                <div className="text-primary fw-bold small">
-                                  {" "}
-                                  {order.id}{" "}
-                                </div>
+                                <div className="text-primary fw-bold small"> {order.id} </div>
                                 {/* Use the new formatting function here */}
-                                <div className="text-muted small">
-                                  {" "}
-                                  {formatDateTime(order.date)}{" "}
-                                </div>
+                                <div className="text-muted small"> {formatDateTime(order.date)} </div>
                               </div>
                               <div className="text-end">
-                                <div className="text-danger fw-bold small">
-                                  {" "}
-                                  {formatCurrency(order.totalAmount)}{" "}
-                                </div>
+                                <div className="text-danger fw-bold small"> {formatCurrency(order.totalAmount)} </div>
                               </div>
-                              <button
-                                className="btn btn-sm btn-outline-primary ms-2"
-                                onClick={() => handleSelectOrder(order)}
-                                disabled={loadingOrderDetails}
-                              >
+                              <button className="btn btn-sm btn-outline-primary ms-2" onClick={() => handleSelectOrder(order)} disabled={loadingOrderDetails}>
                                 {" "}
-                                {loadingOrderDetails
-                                  ? "Đang tải..."
-                                  : "Chọn"}{" "}
+                                {loadingOrderDetails ? "Đang tải..." : "Chọn"}{" "}
                               </button>
                             </div>
                           </td>
@@ -598,8 +515,7 @@ export default function ReturnGoods() {
                     ) : (
                       <tr>
                         <td className="py-4 text-center text-muted">
-                          <i className="fas fa-search me-2"></i> Không tìm thấy
-                          đơn hàng nào
+                          <i className="fas fa-search me-2"></i> Không tìm thấy đơn hàng nào
                         </td>
                       </tr>
                     )}
@@ -618,9 +534,7 @@ export default function ReturnGoods() {
                         className="form-select form-select-sm"
                         style={{ width: "auto", minWidth: "70px" }}
                         value={itemsPerPage}
-                        onChange={(e) =>
-                          handleItemsPerPageChange(parseInt(e.target.value))
-                        }
+                        onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
                       >
                         <option value={3}>3</option>
                         <option value={5}>5</option>
@@ -630,29 +544,21 @@ export default function ReturnGoods() {
                       </select>
                       <span className="text-muted small">đơn/trang</span>
                     </div>
-                    <div className="text-muted small">
-                      Tổng: {filteredOrders.length} đơn hàng
-                    </div>
+                    <div className="text-muted small">Tổng: {filteredOrders.length} đơn hàng</div>
                   </div>
 
                   {totalPages > 1 ? (
                     <>
                       <nav aria-label="Phân trang đơn hàng">
-                        <ul className="pagination pagination-sm justify-content-center mb-2">
-                          {renderPagination()}
-                        </ul>
+                        <ul className="pagination pagination-sm justify-content-center mb-2">{renderPagination()}</ul>
                       </nav>
                       <div className="text-center text-muted small">
-                        Trang {currentPage} / {totalPages} - Hiển thị{" "}
-                        {indexOfFirstItem + 1}-
-                        {Math.min(indexOfLastItem, filteredOrders.length)}
+                        Trang {currentPage} / {totalPages} - Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}
                         trong tổng {filteredOrders.length} đơn hàng
                       </div>
                     </>
                   ) : (
-                    <div className="text-center text-muted small">
-                      Hiển thị tất cả {filteredOrders.length} đơn hàng
-                    </div>
+                    <div className="text-center text-muted small">Hiển thị tất cả {filteredOrders.length} đơn hàng</div>
                   )}
                 </div>
               )}
@@ -676,39 +582,22 @@ export default function ReturnGoods() {
                   {/* Order Info */}
                   <div className="row mb-3">
                     <div className="col-6">
-                      <label className="form-label text-muted small">
-                        Mã đơn hàng trả:
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={selectedOrder.id}
-                        readOnly
-                      />
+                      <label className="form-label text-muted small">Mã đơn hàng trả:</label>
+                      <input type="text" className="form-control" value={selectedOrder.id} readOnly />
                     </div>
                     <div className="col-6">
-                      <label className="form-label text-muted small">
-                        Ngày trả hàng:
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={new Date().toLocaleDateString("vi-VN")}
-                        readOnly
-                      />
+                      <label className="form-label text-muted small">Ngày trả hàng:</label>
+                      <input type="text" className="form-control" value={new Date().toLocaleDateString("vi-VN")} readOnly />
                     </div>
                   </div>
 
                   {/* Items */}
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                      <label className="form-label text-muted small mb-0">
-                        Các sản phẩm trong đơn hàng:
-                      </label>
+                      <label className="form-label text-muted small mb-0">Các sản phẩm trong đơn hàng:</label>
                       <div className="d-flex align-items-center gap-2">
                         <span className="badge bg-light text-dark small">
-                          {filteredReturnItems.length}/{returnItems.length} sản
-                          phẩm
+                          {filteredReturnItems.length}/{returnItems.length} sản phẩm
                         </span>
                       </div>
                     </div>
@@ -740,11 +629,9 @@ export default function ReturnGoods() {
                           }}
                         />
                         <button
-                          className="btn btn-outline-secondary btn-sm"
+                          className="btn btn-secondary btn-sm"
                           type="button"
-                          onClick={() =>
-                            handleProductSearch(productSearchQuery)
-                          }
+                          onClick={() => handleProductSearch(productSearchQuery)}
                           style={{
                             borderTopLeftRadius: 0,
                             borderBottomLeftRadius: 0,
@@ -777,26 +664,11 @@ export default function ReturnGoods() {
                               <tr key={index} className="align-middle">
                                 <td>
                                   <div className="form-check">
-                                    <input
-                                      className="form-check-input"
-                                      type="checkbox"
-                                      checked={item.selected}
-                                      onChange={(e) =>
-                                        handleReturnItemChange(
-                                          index,
-                                          "selected",
-                                          e.target.checked
-                                        )
-                                      }
-                                    />
-                                    <label className="form-check-label small">
-                                      {item.name}
-                                    </label>
+                                    <input className="form-check-input" type="checkbox" checked={item.selected} onChange={(e) => handleReturnItemChange(index, "selected", e.target.checked)} />
+                                    <label className="form-check-label small">{item.name}</label>
                                   </div>
                                 </td>
-                                <td className="small text-center">
-                                  {item.quantity}
-                                </td>
+                                <td className="small text-center">{item.quantity}</td>
                                 <td className="text-center">
                                   <input
                                     type="number"
@@ -808,37 +680,19 @@ export default function ReturnGoods() {
                                     min="0"
                                     max={item.quantity}
                                     value={item.returnQuantity}
-                                    onChange={(e) =>
-                                      handleReturnItemChange(
-                                        index,
-                                        "returnQuantity",
-                                        parseInt(e.target.value) || 0
-                                      )
-                                    }
+                                    onChange={(e) => handleReturnItemChange(index, "returnQuantity", parseInt(e.target.value) || 0)}
                                     disabled={!item.selected}
                                   />
                                 </td>
-                                <td className="small text-center">
-                                  {formatCurrency(item.price)}
-                                </td>
-                                <td className="text-danger fw-bold small text-center">
-                                  {item.selected
-                                    ? formatCurrency(
-                                        item.price * item.returnQuantity
-                                      )
-                                    : "0 đ"}
-                                </td>
+                                <td className="small text-center">{formatCurrency(item.price)}</td>
+                                <td className="text-danger fw-bold small text-center">{item.selected ? formatCurrency(item.price * item.returnQuantity) : "0 đ"}</td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td
-                                colSpan="5"
-                                className="text-center text-muted py-3"
-                              >
+                              <td colSpan="5" className="text-center text-muted py-3">
                                 <i className="fas fa-search me-2"></i>
-                                Không tìm thấy sản phẩm nào phù hợp với "
-                                {productSearchQuery}"
+                                Không tìm thấy sản phẩm nào phù hợp với "{productSearchQuery}"
                               </td>
                             </tr>
                           )}
@@ -849,25 +703,15 @@ export default function ReturnGoods() {
 
                   {/* Return Reason */}
                   <div className="mb-3">
-                    <label className="form-label text-muted small">
-                      Lý do trả hàng:
-                    </label>
-                    <textarea
-                      className="form-control"
-                      rows="3"
-                      placeholder="Mô tả lý do trả hàng"
-                      value={returnReason}
-                      onChange={(e) => setReturnReason(e.target.value)}
-                    />
+                    <label className="form-label text-muted small">Lý do trả hàng:</label>
+                    <textarea className="form-control" rows="3" placeholder="Mô tả lý do trả hàng" value={returnReason} onChange={(e) => setReturnReason(e.target.value)} />
                   </div>
 
                   {/* Total */}
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded">
                       <span className="fw-bold">Tổng tiền hoàn lại:</span>
-                      <span className="text-primary fs-5 fw-bold">
-                        {formatCurrency(calculateReturnTotal())}
-                      </span>
+                      <span className="text-primary fs-5 fw-bold">{formatCurrency(calculateReturnTotal())}</span>
                     </div>
                   </div>
 
@@ -885,11 +729,7 @@ export default function ReturnGoods() {
                     >
                       Hủy
                     </button>
-                    <button
-                      className="btn btn-success"
-                      onClick={handleReturnSubmit}
-                      disabled={submittingReturn}
-                    >
+                    <button className="btn btn-success" onClick={handleReturnSubmit} disabled={submittingReturn}>
                       {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                     </button>
                   </div>
@@ -903,11 +743,7 @@ export default function ReturnGoods() {
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
         <>
-          <div
-            className="modal-backdrop fade show"
-            onClick={handleCancelConfirm}
-            style={{ zIndex: 1040 }}
-          ></div>
+          <div className="modal-backdrop fade show" onClick={handleCancelConfirm} style={{ zIndex: 1040 }}></div>
           <div
             className="modal fade show d-block"
             tabIndex="-1"
@@ -925,33 +761,23 @@ export default function ReturnGoods() {
                     <i className="fas fa-exclamation-triangle text-warning me-2"></i>
                     Xác nhận trả hàng
                   </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={handleCancelConfirm}
-                  ></button>
+                  <button type="button" className="btn-close" onClick={handleCancelConfirm}></button>
                 </div>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <p className="mb-3">
-                      Bạn có chắc chắn muốn thực hiện trả hàng không?
-                    </p>
+                    <p className="mb-3">Bạn có chắc chắn muốn thực hiện trả hàng không?</p>
 
                     <div className="bg-light p-3 rounded mb-3">
                       <div className="row">
                         <div className="col-6">
                           <strong>Mã đơn hàng:</strong>
                           <br />
-                          <span className="text-primary">
-                            {selectedOrder?.id}
-                          </span>
+                          <span className="text-primary">{selectedOrder?.id}</span>
                         </div>
                         <div className="col-6">
                           <strong>Tổng tiền hoàn lại:</strong>
                           <br />
-                          <span className="text-success fw-bold">
-                            {formatCurrency(calculateReturnTotal())}
-                          </span>
+                          <span className="text-success fw-bold">{formatCurrency(calculateReturnTotal())}</span>
                         </div>
                       </div>
 
@@ -959,9 +785,7 @@ export default function ReturnGoods() {
                         <strong>Sản phẩm trả:</strong>
                         <ul className="mb-0 mt-1">
                           {returnItems
-                            .filter(
-                              (item) => item.selected && item.returnQuantity > 0
-                            )
+                            .filter((item) => item.selected && item.returnQuantity > 0)
                             .map((item, index) => (
                               <li key={index} className="small">
                                 {item.name} - SL: {item.returnQuantity}
@@ -985,21 +809,11 @@ export default function ReturnGoods() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={handleCancelConfirm}
-                    disabled={submittingReturn}
-                  >
+                  <button type="button" className="btn btn-secondary" onClick={handleCancelConfirm} disabled={submittingReturn}>
                     <i className="fas fa-times me-1"></i>
                     Hủy
                   </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={handleConfirmedReturn}
-                    disabled={submittingReturn}
-                  >
+                  <button type="button" className="btn btn-danger" onClick={handleConfirmedReturn} disabled={submittingReturn}>
                     <i className="fas fa-check me-1"></i>
                     {submittingReturn ? "Đang xử lý..." : "Xác nhận trả hàng"}
                   </button>

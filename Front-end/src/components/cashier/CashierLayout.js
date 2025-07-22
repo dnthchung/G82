@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  FaHome,
-  FaPlay,
-  FaCashRegister,
-  FaUndo,
-  FaStop,
-  FaChevronRight,
-  FaBars,
-} from "react-icons/fa";
+import { FaHome, FaPlay, FaCashRegister, FaUndo, FaStop, FaChevronRight, FaBars } from "react-icons/fa";
 import "./CashierLayout.css";
 
-const CashierLayout = ({
-  children,
-  pageTitle = "Tổng quan",
-  breadcrumb = "",
-}) => {
+const CashierLayout = ({ children, pageTitle = "Tổng quan", breadcrumb = "" }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [currentPageTitle, setCurrentPageTitle] = useState(pageTitle);
@@ -75,23 +63,14 @@ const CashierLayout = ({
         {/* Logo */}
         <div className="sidebar-header">
           <div className="logo-container">
-            <div className="logo-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 4.5 8-4.5M12 12l8 4.5"
-                />
-              </svg>
+            <div class="d-flex align-items-center justify-content-center">
+              <div class="logo-icon me-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 4.5 8-4.5M12 12l8 4.5" />
+                </svg>
+              </div>
+              <h1 class="sidebar-title mb-0">TH Hải Chi</h1>
             </div>
-            <h1 className="sidebar-title">Tạp hóa Hải Chi</h1>
           </div>
         </div>
 
@@ -113,46 +92,31 @@ const CashierLayout = ({
               </h3> */}
               <ul className="nav-submenu">
                 <li>
-                  <button
-                    className="nav-link"
-                    onClick={() => handleNavigation("/layout")}
-                  >
+                  <button className="nav-link" onClick={() => handleNavigation("/layout")}>
                     <FaHome />
                     <span className="sidebar-text">Tổng quan</span>
                   </button>
                 </li>
                 <li>
-                  <button
-                    className="nav-link"
-                    onClick={() => handleNavigation("/openshift")}
-                  >
+                  <button className="nav-link" onClick={() => handleNavigation("/openshift")}>
                     <FaPlay />
                     <span className="sidebar-text">Mở ca</span>
                   </button>
                 </li>
                 <li>
-                  <button
-                    className="nav-link"
-                    onClick={() => handleNavigation("/POS")}
-                  >
+                  <button className="nav-link" onClick={() => handleNavigation("/POS")}>
                     <FaCashRegister />
                     <span className="sidebar-text">Bán hàng</span>
                   </button>
                 </li>
                 <li>
-                  <button
-                    className="nav-link"
-                    onClick={() => handleNavigation("/return-goods")}
-                  >
+                  <button className="nav-link" onClick={() => handleNavigation("/return-goods")}>
                     <FaUndo />
                     <span className="sidebar-text">Trả hàng</span>
                   </button>
                 </li>
                 <li>
-                  <button
-                    className="nav-link"
-                    onClick={() => handleNavigation("/closeshift")}
-                  >
+                  <button className="nav-link" onClick={() => handleNavigation("/closeshift")}>
                     <FaStop />
                     <span className="sidebar-text">Kết ca</span>
                   </button>
@@ -183,7 +147,7 @@ const CashierLayout = ({
         {/* Header */}
         <header className="top-header">
           <div className="header-content">
-            <div className="header-left">
+            {/* <div className="header-left">
               <button className="toggle-sidebar-btn" onClick={toggleSidebar}>
                 {isCollapsed ? <FaChevronRight /> : <FaBars />}
               </button>
@@ -191,16 +155,23 @@ const CashierLayout = ({
                 <h1 className="page-title">{currentPageTitle}</h1>
                 <p className="breadcrumb">{breadcrumb}</p>
               </div>
+            </div> */}
+            <div class="d-flex align-items-center justify-content-between">
+              <button class="toggle-sidebar-btn me-3" onClick={toggleSidebar}>
+                {isCollapsed ? <FaChevronRight /> : <FaBars />}
+              </button>
+
+              <div class="page-info text-center">
+                <h1 className="page-title mb-0">{currentPageTitle}</h1>
+                <p className="breadcrumb mb-0">{breadcrumb}</p>
+              </div>
             </div>
+
             <div className="header-right">
               <div className="user-menu-container">
                 <button className="user-menu-button" onClick={toggleUserMenu}>
-                  <img
-                    className="user-avatar"
-                    src="https://placehold.co/100x100/E2E8F0/4A5568?text=AVT"
-                    alt="Avatar người dùng"
-                  />
-                  <div className="user-info">
+                  <img className="user-avatar" src="https://placehold.co/100x100/E2E8F0/4A5568?text=AVT" alt="Avatar người dùng" />
+                  <div className=" d-flex flex-column">
                     <p className="user-name">Nguyễn Văn A</p>
                     <p className="user-role">Người bán hàng</p>
                   </div>
@@ -219,7 +190,11 @@ const CashierLayout = ({
         </header>
 
         {/* Content Area */}
-        <main className="content-area">{children}</main>
+        <main>
+          <div className="container-fluid p-4" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -28,12 +28,14 @@ const ProductManagement = () => {
     { id: "SP015", name: "Nước giặt Omo", category: "Vệ sinh nhà cửa", costPrice: 95000, sellingPrice: 125000, stock: 60, unit: "túi" },
   ]);
 
-  // State cho filters và pagination
+  // State cho filters, pagination và sorting
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  // ADDED: State để quản lý việc sắp xếp
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
 
   // Lấy danh sách categories duy nhất
   const categories = useMemo(() => {
@@ -41,34 +43,51 @@ const ProductManagement = () => {
     return ["Tất cả", ...uniqueCategories.sort()];
   }, [products]);
 
-  // Filter products
+  // CHANGED: Filter và Sort products
   const filteredProducts = useMemo(() => {
-    let filtered = products;
+    // Tạo một bản sao để có thể sort mà không ảnh hưởng state gốc
+    let filtered = [...products];
 
+    // Lọc theo từ khóa
     if (searchTerm.trim() !== "") {
       filtered = filtered.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.id.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-
+    // Lọc theo nhóm sản phẩm
     if (selectedCategory !== "Tất cả") {
       filtered = filtered.filter((p) => p.category === selectedCategory);
     }
-
+    // Lọc theo khoảng giá
     if (priceRange.min !== "") {
       filtered = filtered.filter((p) => p.sellingPrice >= Number(priceRange.min));
     }
-
     if (priceRange.max !== "") {
       filtered = filtered.filter((p) => p.sellingPrice <= Number(priceRange.max));
     }
 
+    // ADDED: Sắp xếp sản phẩm
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        const valA = a[sortConfig.key];
+        const valB = b[sortConfig.key];
+        if (valA < valB) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
     return filtered;
-  }, [products, searchTerm, selectedCategory, priceRange]);
+  }, [products, searchTerm, selectedCategory, priceRange, sortConfig]); // CHANGED: Thêm sortConfig vào dependencies
 
   // Xử lý bộ lọc
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedCategory("Tất cả");
     setPriceRange({ min: "", max: "" });
+    setSortConfig({ key: null, direction: "ascending" }); // CHANGED: Reset cả sắp xếp
     setCurrentPage(1);
   };
 
@@ -77,104 +96,125 @@ const ProductManagement = () => {
     setCurrentPage(1);
   };
 
-  // Pagination
+  // ADDED: Hàm yêu cầu sắp xếp
+  const requestSort = (key) => {
+    let direction = "ascending";
+    // Nếu click lại vào cột đang được sắp xếp, đổi chiều
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1); // Quay về trang đầu tiên khi sắp xếp
+  };
+
+  // ADDED: Hàm để hiển thị icon sắp xếp
+  const getSortIndicator = (key) => {
+    if (sortConfig.key !== key) {
+      return (
+        <span className="text-muted ms-1" style={{ opacity: 0.5 }}>
+          ↕
+        </span>
+      );
+    }
+    return (
+      <span className="ms-1" style={{ color: "#0d6efd" }}>
+        {sortConfig.direction === "ascending" ? "▲" : "▼"}
+      </span>
+    );
+  };
+
+  // Pagination (Không thay đổi)
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
-
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
-
-  // Render pagination buttons
   const renderPagination = () => {
     const pages = [];
     const maxVisiblePages = 3;
-
-    // Previous button
     pages.push(
       <li key="prev" className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+        {" "}
         <button className="page-link" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} title="Trang trước">
-          ‹
-        </button>
+          {" "}
+          ‹{" "}
+        </button>{" "}
       </li>,
     );
-
-    // First page
     if (currentPage > 2) {
       pages.push(
         <li key={1} className="page-item">
+          {" "}
           <button className="page-link" onClick={() => handlePageChange(1)}>
-            1
-          </button>
+            {" "}
+            1{" "}
+          </button>{" "}
         </li>,
       );
-
       if (currentPage > 3) {
         pages.push(
           <li key="dots1" className="page-item disabled">
-            <span className="page-link">...</span>
+            {" "}
+            <span className="page-link">...</span>{" "}
           </li>,
         );
       }
     }
-
-    // Current page and neighbors
     let startPage = Math.max(1, currentPage - 1);
     let endPage = Math.min(totalPages, currentPage + 1);
-
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <li key={i} className={`page-item ${currentPage === i ? "active" : ""}`}>
+          {" "}
           <button className="page-link" onClick={() => handlePageChange(i)}>
-            {i}
-          </button>
+            {" "}
+            {i}{" "}
+          </button>{" "}
         </li>,
       );
     }
-
-    // Last page
     if (currentPage < totalPages - 1) {
       if (currentPage < totalPages - 2) {
         pages.push(
           <li key="dots2" className="page-item disabled">
-            <span className="page-link">...</span>
+            {" "}
+            <span className="page-link">...</span>{" "}
           </li>,
         );
       }
-
       pages.push(
         <li key={totalPages} className="page-item">
+          {" "}
           <button className="page-link" onClick={() => handlePageChange(totalPages)}>
-            {totalPages}
-          </button>
+            {" "}
+            {totalPages}{" "}
+          </button>{" "}
         </li>,
       );
     }
-
-    // Next button
     pages.push(
       <li key="next" className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+        {" "}
         <button className="page-link" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} title="Trang sau">
-          ›
-        </button>
+          {" "}
+          ›{" "}
+        </button>{" "}
       </li>,
     );
-
     return pages;
   };
 
   return (
     <CashierLayout pageTitle="Quản lý sản phẩm" breadcrumb="Quản lý sản phẩm">
-      <div className="container-fluid p-4" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+      <div>
         <div className="row g-4">
           {/* Left Panel - Categories */}
           <div className="col-md-3">
@@ -183,11 +223,9 @@ const ProductManagement = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="card-title mb-0">Nhóm sản phẩm</h6>
                   <button className="btn btn-sm btn-success">
-                    <Plus size={16} className="me-1" />
-                    Thêm
+                    <Plus size={16} className="me-1" /> Thêm
                   </button>
                 </div>
-
                 {/* Categories List */}
                 <div className="list-group list-group-flush">
                   {categories.map((category) => (
@@ -207,67 +245,46 @@ const ProductManagement = () => {
               </div>
             </div>
           </div>
-
           {/* Right Panel - Products List */}
           <div className="col-md-9">
             <div className="card shadow-sm h-100">
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="card-title mb-0">
-                    Danh sách sản phẩm
-                    <span className="badge bg-primary ms-2">{filteredProducts.length}</span>
+                    Danh sách sản phẩm <span className="badge bg-primary ms-2">{filteredProducts.length}</span>
                   </h6>
-                  <button className="btn btn-sm btn-primary">
-                    <Plus size={16} className="me-1" />
-                    Thêm sản phẩm
-                  </button>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-danger" onClick={resetFilters}>
+                      <RotateCcw size={16} className="me-1" /> Xóa bộ lọc
+                    </button>
+                    <button className="btn btn-sm btn-primary">
+                      <Plus size={16} className="me-1" /> Thêm sản phẩm
+                    </button>
+                  </div>
                 </div>
-
                 {/* Filters */}
                 <div className="mb-3">
                   {/* Search */}
                   <div className="mb-3">
-                    <div
-                      className="d-grid"
-                      style={{
-                        gridTemplateColumns: "1fr auto",
-                        gap: 0,
-                        maxWidth: "100%",
-                      }}
-                    >
+                    <div className="d-grid" style={{ gridTemplateColumns: "1fr auto", gap: 0, maxWidth: "100%" }}>
                       <input
                         type="text"
                         className="form-control"
                         placeholder="Nhập tên sản phẩm hoặc mã sản phẩm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                          borderTopRightRadius: 0,
-                          borderBottomRightRadius: 0,
-                          margin: 0,
-                          height: "32px",
-                          fontSize: "0.9rem",
-                          padding: "0.375rem 0.75rem",
-                        }}
+                        style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, margin: 0, height: "32px", fontSize: "0.9rem", padding: "0.375rem 0.75rem" }}
                       />
                       <button
-                        className="btn btn-outline-secondary"
+                        className="btn btn-secondary"
                         onClick={handleSearch}
                         type="button"
-                        style={{
-                          borderTopLeftRadius: 0,
-                          borderBottomLeftRadius: 0,
-                          margin: 0,
-                          height: "32px",
-                          fontSize: "0.9rem",
-                          padding: "0.375rem 0.75rem",
-                        }}
+                        style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, margin: 0, height: "32px", fontSize: "0.9rem", padding: "0.375rem 0.75rem" }}
                       >
                         <Search size={16} />
                       </button>
                     </div>
                   </div>
-
                   {/* Price Range Filter */}
                   <div className="row">
                     <div className="col-md-6">
@@ -291,24 +308,94 @@ const ProductManagement = () => {
                         />
                       </div>
                     </div>
-                    <div className="col-md-6 d-flex align-items-end">
-                      <button className="btn btn-sm btn-outline-danger" onClick={resetFilters}>
-                        <RotateCcw size={16} className="me-1" />
-                        Xóa bộ lọc
-                      </button>
-                    </div>
                   </div>
                 </div>
-
                 {/* Products Table */}
                 <div className="table-responsive">
                   <table className="table table-sm table-hover">
                     <thead className="table-light">
                       <tr className="align-middle text-center">
-                        <th className="text-start text-muted small text-uppercase">Sản phẩm</th>
-                        <th className="text-muted small text-uppercase">Giá bán</th>
-                        <th className="text-muted small text-uppercase">Giá vốn</th>
-                        <th className="text-muted small text-uppercase">Tồn kho</th>
+                        {/* CHANGED: Thêm onClick, style và hiển thị icon sắp xếp */}
+                        <th
+                          className="text-start text-muted small text-uppercase user-select-none"
+                          style={{
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            borderBottom: "2px solid transparent",
+                          }}
+                          onClick={() => requestSort("name")}
+                          title="Nhấn để sắp xếp theo tên sản phẩm"
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#e9ecef";
+                            e.target.style.borderBottomColor = "#0d6efd";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "";
+                            e.target.style.borderBottomColor = "transparent";
+                          }}
+                        >
+                          Sản phẩm{getSortIndicator("name")}
+                        </th>
+                        <th
+                          className="text-muted small text-uppercase user-select-none"
+                          style={{
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            borderBottom: "2px solid transparent",
+                          }}
+                          onClick={() => requestSort("sellingPrice")}
+                          title="Nhấn để sắp xếp theo giá bán"
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#e9ecef";
+                            e.target.style.borderBottomColor = "#0d6efd";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "";
+                            e.target.style.borderBottomColor = "transparent";
+                          }}
+                        >
+                          Giá bán{getSortIndicator("sellingPrice")}
+                        </th>
+                        <th
+                          className="text-muted small text-uppercase user-select-none"
+                          style={{
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            borderBottom: "2px solid transparent",
+                          }}
+                          onClick={() => requestSort("costPrice")}
+                          title="Nhấn để sắp xếp theo giá vốn"
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#e9ecef";
+                            e.target.style.borderBottomColor = "#0d6efd";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "";
+                            e.target.style.borderBottomColor = "transparent";
+                          }}
+                        >
+                          Giá vốn{getSortIndicator("costPrice")}
+                        </th>
+                        <th
+                          className="text-muted small text-uppercase user-select-none"
+                          style={{
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            borderBottom: "2px solid transparent",
+                          }}
+                          onClick={() => requestSort("stock")}
+                          title="Nhấn để sắp xếp theo số lượng tồn kho"
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#e9ecef";
+                            e.target.style.borderBottomColor = "#0d6efd";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "";
+                            e.target.style.borderBottomColor = "transparent";
+                          }}
+                        >
+                          Tồn kho{getSortIndicator("stock")}
+                        </th>
                         <th className="text-muted small text-uppercase">Hành động</th>
                       </tr>
                     </thead>
@@ -328,10 +415,12 @@ const ProductManagement = () => {
                             <td className="text-center">
                               <div className="d-flex justify-content-center gap-1">
                                 <button className="btn btn-sm btn-outline-primary" title="Sửa">
-                                  <Edit2 size={14} />
+                                  {" "}
+                                  <Edit2 size={14} />{" "}
                                 </button>
                                 <button className="btn btn-sm btn-outline-danger" title="Xóa">
-                                  <Trash2 size={14} />
+                                  {" "}
+                                  <Trash2 size={14} />{" "}
                                 </button>
                               </div>
                             </td>
@@ -349,11 +438,9 @@ const ProductManagement = () => {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination */}
+                {/* Pagination (Không thay đổi) */}
                 {filteredProducts.length > 0 && (
                   <div className="mt-3 pt-3 border-top">
-                    {/* Items per page selector */}
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center gap-2">
                         <span className="text-muted small">Hiển thị:</span>
@@ -363,24 +450,22 @@ const ProductManagement = () => {
                           value={itemsPerPage}
                           onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
                         >
-                          <option value={5}>5</option>
-                          <option value={10}>10</option>
-                          <option value={15}>15</option>
-                          <option value={20}>20</option>
+                          {" "}
+                          <option value={5}>5</option> <option value={10}>10</option> <option value={15}>15</option> <option value={20}>20</option>{" "}
                         </select>
                         <span className="text-muted small">sản phẩm/trang</span>
                       </div>
                       <div className="text-muted small">Tổng: {filteredProducts.length} sản phẩm</div>
                     </div>
-
                     {totalPages > 1 ? (
                       <>
                         <nav aria-label="Phân trang sản phẩm">
-                          <ul className="pagination pagination-sm justify-content-center mb-2">{renderPagination()}</ul>
+                          {" "}
+                          <ul className="pagination pagination-sm justify-content-center mb-2">{renderPagination()}</ul>{" "}
                         </nav>
                         <div className="text-center text-muted small">
-                          Trang {currentPage} / {totalPages} - Hiển thị {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProducts.length)}
-                          trong tổng {filteredProducts.length} sản phẩm
+                          {" "}
+                          Trang {currentPage} / {totalPages} - Tổng: {filteredProducts.length} sản phẩm{" "}
                         </div>
                       </>
                     ) : (
