@@ -1,254 +1,403 @@
 import React from "react";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
-import "./Css/Dashboard.css";
+import CashierLayout from "./cashier/CashierLayout";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-  // Mock data cho các thống kê
-  const stats = {
-    revenue: 125000000,
-    orders: 1500,
-    expense: 45000000,
-    profit: 80000000,
-  };
-
-  // Mock data cho hiệu suất nhân viên
-  const employeePerformance = [
-    { name: "Nguyễn Văn A", sales: 25000000, orders: 120, status: "Xuất sắc" },
-    { name: "Trần Thị B", sales: 22000000, orders: 110, status: "Tốt" },
-    { name: "Lê Văn C", sales: 18000000, orders: 95, status: "Khá" },
-  ];
-
-  // Mock data cho Top 10 sản phẩm bán chạy
-  const topSellingProducts = {
-    labels: ["Bánh mì", "Cháo trai", "Cơm gà", "Phở bò", "Bún chả", "Cao lầu", "Chè đậu", "Bánh canh", "Bún bò", "Bánh xèo"],
+  // Data for top selling products chart
+  const topProductsData = {
+    labels: ["Áo phông", "Quần jeans", "Giày thể thao", "Váy đầm", "Áo khoác", "Túi xách", "Đồng hồ", "Dép", "Quần short", "Mũ"],
     datasets: [
       {
         label: "Số lượng bán",
-        data: [50, 45, 35, 25, 20, 18, 15, 12, 10, 8],
-        backgroundColor: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#F39C12", "#3498DB", "#E74C3C", "#2ECC71"],
-        borderWidth: 1,
+        data: [85, 78, 65, 58, 52, 48, 42, 38, 32, 28],
+        backgroundColor: ["#FF6B9D", "#4ECDC4", "#FFD93D", "#6BCF7F", "#A8E6CF", "#FFB347", "#87CEEB", "#DDA0DD", "#F0E68C", "#98FB98"],
+        borderWidth: 0,
+        borderRadius: 8,
       },
     ],
   };
 
-  // Mock data cho Top 10 sản phẩm tồn kho ít
-  const lowStockProducts = [
-    { name: "Gạy hột thơm", quantity: 15, status: "Hết hàng" },
-    { name: "Chanh tươi", quantity: 60, status: "Sắp hết" },
-    { name: "Ao so mi nam", quantity: 30, status: "Sắp hết" },
-    { name: "Váy đen", quantity: 25, status: "Sắp hết" },
-    { name: "Tủ sách gỗ", quantity: 10, status: "Hết hàng" },
-    { name: "Kính mắt", quantity: 55, status: "Sắp hết" },
-    { name: "Đồng hồ thông minh", quantity: 35, status: "Sắp hết" },
-    { name: "Máy tính bảng", quantity: 40, status: "Sắp hết" },
-    { name: "Điện thoại", quantity: 20, status: "Sắp hết" },
-    { name: "Khăn quàng cổ", quantity: 18, status: "Hết hàng" },
-  ];
-
-  // Mock data cho doanh thu theo tháng
-  const monthlyRevenue = {
+  // Data for monthly revenue chart
+  const monthlyRevenueData = {
     labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
     datasets: [
       {
         label: "Doanh thu (VNĐ)",
-        data: [120000000, 135000000, 140000000, 128000000, 145000000, 150000000],
-        borderColor: "#4ECDC4",
-        backgroundColor: "rgba(78, 205, 196, 0.2)",
-        tension: 0.4,
+        data: [80000000, 95000000, 110000000, 105000000, 120000000, 115000000],
+        borderColor: "#4A90E2",
+        backgroundColor: "rgba(74, 144, 226, 0.1)",
         fill: true,
+        tension: 0.4,
+        pointBackgroundColor: "#4A90E2",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 6,
       },
     ],
   };
 
-  // Mock data cho lợi nhuận góp theo tháng
-  const monthlyProfit = {
+  // Data for monthly profit chart
+  const monthlyProfitData = {
     labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
     datasets: [
       {
-        label: "Lợi nhuận góp (VNĐ)",
-        data: [25000000, 30000000, 28000000, 32000000, 35000000, 38000000],
+        label: "Lợi nhuận gộp (VNĐ)",
+        data: [24000000, 28000000, 33000000, 31500000, 36000000, 34500000],
         borderColor: "#9B59B6",
-        backgroundColor: "rgba(155, 89, 182, 0.2)",
-        tension: 0.4,
+        backgroundColor: "rgba(155, 89, 182, 0.1)",
         fill: true,
+        tension: 0.4,
+        pointBackgroundColor: "#9B59B6",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 6,
       },
     ],
   };
 
-  const chartOptions = {
+  // Chart options
+  const barChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "top",
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(0,0,0,0.8)",
+        titleColor: "#ffffff",
+        bodyColor: "#ffffff",
+        cornerRadius: 8,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        grid: { color: "rgba(0,0,0,0.1)" },
+        ticks: { color: "#666" },
+      },
+      x: {
+        grid: { display: false },
         ticks: {
-          callback: function (value) {
-            return value.toLocaleString("vi-VN");
-          },
+          color: "#666",
+          maxRotation: 45,
+          minRotation: 45,
         },
       },
     },
   };
 
-  const barChartOptions = {
+  const lineChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(0,0,0,0.8)",
+        titleColor: "#ffffff",
+        bodyColor: "#ffffff",
+        cornerRadius: 8,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        grid: { color: "rgba(0,0,0,0.1)" },
+        ticks: {
+          color: "#666",
+          callback: function (value) {
+            return new Intl.NumberFormat("vi-VN").format(value) + " VNĐ";
+          },
+        },
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: "#666" },
       },
     },
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
+  const topProductsTableData = [
+    { name: "Giày thể thao", quantity: 15, status: "Bán chạy" },
+    { name: "Quần jean nữ", quantity: 80, status: "Hết hàng" },
+    { name: "Áo sơ mi nam", quantity: 30, status: "Bán ít" },
+    { name: "Váy đầm", quantity: 25, status: "Bán ít" },
+    { name: "Túi xách nữ", quantity: 10, status: "Bán chạy" },
+    { name: "Kính râm", quantity: 55, status: "Bình thường" },
+    { name: "Đồng hồ nam", quantity: 5, status: "Bán chạy" },
+    { name: "Mũ bucket", quantity: 20, status: "Bán ít" },
+    { name: "Dép ai thông vnh", quantity: 40, status: "Bình thường" },
+    { name: "Khăn quàng cổ", quantity: 18, status: "Bán chạy" },
+  ];
+
+  const staffPerformanceData = [
+    { name: "Nguyễn Văn A", target: "25.000.000 VNĐ", orders: 52, rating: "Giỏi" },
+    { name: "Trần Thị B", target: "22.000.000 VNĐ", orders: 110, rating: "Tốt" },
+    { name: "Lê Văn C", target: "18.000.000 VNĐ", orders: 95, rating: "Khá" },
+  ];
+
+  const getStatusColorName = (status) => {
+    switch (status) {
+      case "Bán chạy":
+        return "success";
+      case "Hết hàng":
+        return "danger";
+      case "Bán ít":
+        return "warning";
+      default:
+        return "primary";
+    }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Hết hàng":
-        return "#E74C3C";
-      case "Sắp hết":
-        return "#F39C12";
-      case "Xuất sắc":
-        return "#27AE60";
+  const getRatingColorName = (rating) => {
+    switch (rating) {
+      case "Giỏi":
+        return "success";
       case "Tốt":
-        return "#3498DB";
+        return "info";
       case "Khá":
-        return "#F39C12";
+        return "warning";
       default:
-        return "#95A5A6";
+        return "secondary";
     }
   };
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Dashboard Quản Lý</h1>
-        <div className="user-info">
-          <span>🔔</span>
-          <span>👤 Quản lý</span>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="stats-grid">
-        <div className="stat-card revenue">
-          <div className="stat-content">
-            <h3>Doanh thu hôm nay</h3>
-            <p className="stat-value">{formatCurrency(stats.revenue)}</p>
-          </div>
-        </div>
-        <div className="stat-card orders">
-          <div className="stat-content">
-            <h3>Đơn hàng hôm nay</h3>
-            <p className="stat-value">{stats.orders}</p>
-          </div>
-        </div>
-        <div className="stat-card expense">
-          <div className="stat-content">
-            <h3>Chi phí hôm nay</h3>
-            <p className="stat-value">{formatCurrency(stats.expense)}</p>
-          </div>
-        </div>
-        <div className="stat-card profit">
-          <div className="stat-content">
-            <h3>Lợi nhuận hôm nay</h3>
-            <p className="stat-value">{formatCurrency(stats.profit)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="charts-grid">
-        <div className="chart-container">
-          <h3>Top 10 Sản phẩm bán chạy nhất</h3>
-          <Bar data={topSellingProducts} options={barChartOptions} />
-        </div>
-
-        <div className="table-container">
-          <h3>Top 10 Sản phẩm tồn kho ít</h3>
-          <div className="stock-table">
-            <div className="table-header">
-              <span>Sản phẩm</span>
-              <span>Số lượng tồn</span>
-              <span>Trạng thái</span>
-            </div>
-            {lowStockProducts.map((product, index) => (
-              <div key={index} className="table-row">
-                <span>{product.name}</span>
-                <span>{product.quantity}</span>
-                <span className="status" style={{ color: getStatusColor(product.status) }}>
-                  {product.status}
-                </span>
+    <CashierLayout pageTitle="Dashboard Quản Lý" breadcrumb="Dashboard Quản Lý">
+      <div className="container-fluid bg-light min-vh-100 py-4">
+        <div className="row">
+          {/* Header */}
+          {/* <div className="col-12 mb-4">
+            <div className="d-flex justify-content-between align-items-center">
+              <h2 className="fw-bold text-dark mb-0">Dashboard Quản Lý</h2>
+              <div className="text-muted">
+                <i className="fas fa-user-circle me-2"></i>
+                Quản lý
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Revenue and Profit Charts */}
-      <div className="charts-grid">
-        <div className="chart-container">
-          <h3>Doanh thu theo tháng</h3>
-          <Line data={monthlyRevenue} options={chartOptions} />
-        </div>
-
-        <div className="chart-container">
-          <h3>Lợi nhuận góp theo tháng</h3>
-          <Line data={monthlyProfit} options={chartOptions} />
-        </div>
-      </div>
-
-      {/* Employee Performance and Quick Actions */}
-      <div className="bottom-section">
-        <div className="employee-performance">
-          <h3>Hiệu suất nhân viên hàng đầu</h3>
-          <div className="employee-table">
-            <div className="table-header">
-              <span>Tên nhân viên</span>
-              <span>Doanh số đã nhận</span>
-              <span>Số đơn hàng</span>
-              <span>Đánh giá</span>
             </div>
-            {employeePerformance.map((employee, index) => (
-              <div key={index} className="table-row">
-                <span>{employee.name}</span>
-                <span>{formatCurrency(employee.sales)}</span>
-                <span>{employee.orders}</span>
-                <span className="status" style={{ color: getStatusColor(employee.status) }}>
-                  {employee.status}
-                </span>
+          </div> */}
+
+          {/* Quick Actions - Moved to top */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Tác vụ nhanh</h5>
               </div>
-            ))}
+              <div className="card-body">
+                <div className="row g-2">
+                  <div className="col-lg-3 col-md-6">
+                    <button className="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center">
+                      <i className="fas fa-tasks me-2"></i>
+                      Phân ca làm việc
+                    </button>
+                  </div>
+                  <div className="col-lg-3 col-md-6">
+                    <button className="btn btn-success btn-sm w-100 d-flex align-items-center justify-content-center">
+                      <i className="fas fa-plus me-2"></i>
+                      Nhập hàng
+                    </button>
+                  </div>
+                  <div className="col-lg-3 col-md-6">
+                    <button className="btn btn-info btn-sm w-100 d-flex align-items-center justify-content-center">
+                      <i className="fas fa-chart-bar me-2"></i>
+                      Quản lý kiểm kho
+                    </button>
+                  </div>
+                  <div className="col-lg-3 col-md-6">
+                    <button className="btn btn-warning btn-sm w-100 d-flex align-items-center justify-content-center text-white">
+                      <i className="fas fa-exclamation-triangle me-2"></i>
+                      Báo cáo xuất nhập tồn
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="col-lg-3 col-md-6 mb-4">
+            <div className="card border-0 shadow-sm h-100" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+              <div className="card-body text-white">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 className="card-subtitle mb-2 text-white-50">Tổng doanh thu tháng</h6>
+                    <h3 className="card-title fw-bold mb-0">125.000.000 VNĐ</h3>
+                  </div>
+                  <div className="bg-white bg-opacity-20 p-3 rounded-circle">
+                    <i className="fas fa-chart-line fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-3 col-md-6 mb-4">
+            <div className="card border-0 shadow-sm h-100" style={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" }}>
+              <div className="card-body text-white">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 className="card-subtitle mb-2 text-white-50">Lợi nhuận tháng</h6>
+                    <h3 className="card-title fw-bold mb-0">45.000.000 VNĐ</h3>
+                  </div>
+                  <div className="bg-white bg-opacity-20 p-3 rounded-circle">
+                    <i className="fas fa-coins fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-3 col-md-6 mb-4">
+            <div className="card border-0 shadow-sm h-100" style={{ background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" }}>
+              <div className="card-body text-white">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 className="card-subtitle mb-2 text-white-50">Số đơn đã bán</h6>
+                    <h3 className="card-title fw-bold mb-0">1500</h3>
+                  </div>
+                  <div className="bg-white bg-opacity-20 p-3 rounded-circle">
+                    <i className="fas fa-shopping-cart fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-3 col-md-6 mb-4">
+            <div className="card border-0 shadow-sm h-100" style={{ background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" }}>
+              <div className="card-body text-white">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 className="card-subtitle mb-2 text-white-50">Giá trị tồn kho</h6>
+                    <h3 className="card-title fw-bold mb-0">80.000.000 VNĐ</h3>
+                  </div>
+                  <div className="bg-white bg-opacity-20 p-3 rounded-circle">
+                    <i className="fas fa-wallet fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="quick-actions">
-          <h3>Tác vụ nhanh</h3>
-          <div className="action-buttons">
-            <button className="action-btn work">📋 Phân ca làm việc</button>
-            <button className="action-btn goods">📦 Nhập hàng</button>
-            <button className="action-btn manage">✅ Quản lý kiểm kho</button>
-            <button className="action-btn report">📊 Báo cáo xuất nhập tồn</button>
+        <div className="row">
+          {/* Top Selling Products Chart */}
+          <div className="col-lg-6 mb-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Top 10 Sản phẩm bán chạy nhất</h5>
+              </div>
+              <div className="card-body">
+                <div style={{ height: "300px" }}>
+                  <Bar data={topProductsData} options={barChartOptions} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Staff Performance Table */}
+          <div className="col-lg-6 mb-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Hiệu suất nhân viên hàng đầu</h5>
+              </div>
+              <div className="card-body">
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th className="border-0 text-muted fw-normal">Tên nhân viên</th>
+                        <th className="border-0 text-muted fw-normal">Doanh thu cá nhân</th>
+                        <th className="border-0 text-muted fw-normal">Số đơn hàng</th>
+                        <th className="border-0 text-muted fw-normal">Đánh giá</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {staffPerformanceData.map((staff, index) => (
+                        <tr key={index}>
+                          <td className="fw-medium">{staff.name}</td>
+                          <td className="text-primary fw-medium">{staff.target}</td>
+                          <td>{staff.orders}</td>
+                          <td>
+                            <span className={`badge rounded-pill bg-${getRatingColorName(staff.rating)}-subtle text-${getRatingColorName(staff.rating)}-emphasis`}>{staff.rating}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row">
+          {/* Top Products Table */}
+          <div className="col-lg-6 mb-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Top 10 Sản phẩm tồn kho ít</h5>
+              </div>
+              <div className="card-body">
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th className="border-0 text-muted fw-normal">Sản phẩm</th>
+                        <th className="border-0 text-muted fw-normal">Số lượng tồn</th>
+                        <th className="border-0 text-muted fw-normal">Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topProductsTableData.slice(0, 8).map((product, index) => (
+                        <tr key={index}>
+                          <td className="fw-medium">{product.name}</td>
+                          <td>{product.quantity}</td>
+                          <td>
+                            <span className={`badge rounded-pill bg-${getStatusColorName(product.status)}-subtle text-${getStatusColorName(product.status)}-emphasis`}>{product.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Chart */}
+          <div className="col-lg-6 mb-4">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Doanh thu theo tháng</h5>
+              </div>
+              <div className="card-body">
+                <div style={{ height: "300px" }}>
+                  <Line data={monthlyRevenueData} options={lineChartOptions} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row">
+          {/* Profit Chart */}
+          <div className="col-12 mb-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-header bg-white border-0 pb-0">
+                <h5 className="card-title fw-bold text-dark">Lợi nhuận gộp theo tháng</h5>
+              </div>
+              <div className="card-body">
+                <div style={{ height: "300px" }}>
+                  <Line data={monthlyProfitData} options={lineChartOptions} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </CashierLayout>
   );
 };
 
